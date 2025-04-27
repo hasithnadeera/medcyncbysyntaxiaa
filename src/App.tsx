@@ -19,17 +19,11 @@ import PatientProfile from "./pages/PatientProfile";
 import PatientMedicalRecords from "./pages/PatientMedicalRecords";
 import PatientAppointments from "./pages/PatientAppointments";
 import PharmacistDashboard from "./pages/PharmacistDashboard";
-import { toast } from "sonner";
 
-// Enhance the context to include user role
-export const AuthContext = createContext<{ 
-  user: User | null; 
-  isLoading: boolean;
-  userRole: string | null;
-}>({
+// Create a context for user authentication
+export const AuthContext = createContext<{ user: User | null; isLoading: boolean }>({
   user: null,
   isLoading: true,
-  userRole: null,
 });
 
 const queryClient = new QueryClient();
@@ -37,124 +31,46 @@ const queryClient = new QueryClient();
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event, session?.user?.id);
+      (event, session) => {
         setUser(session?.user ?? null);
-        
-        // Fetch user role when auth state changes
-        if (session?.user) {
-          try {
-            const { data, error } = await supabase.rpc('get_user_profile', { user_id: session.user.id });
-            
-            if (error) {
-              console.error("Error fetching user role:", error);
-              toast.error("Error fetching profile data");
-            } else if (data && data.length > 0) {
-              console.log("User role fetched:", data[0].role);
-              setUserRole(data[0].role);
-            } else {
-              console.log("No user data found");
-              setUserRole(null);
-            }
-          } catch (error) {
-            console.error("Error in role fetch:", error);
-            toast.error("Error retrieving user role");
-          }
-        } else {
-          setUserRole(null);
-        }
-        
         setIsLoading(false);
       }
     );
 
     // Then check for existing session
-    const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error("Session error:", error);
-        setIsLoading(false);
-        return;
-      }
-      
-      console.log("Initial session check:", session?.user?.id);
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      
-      // Fetch user role for existing session
-      if (session?.user) {
-        try {
-          const { data, error } = await supabase.rpc('get_user_profile', { user_id: session.user.id });
-          
-          if (error) {
-            console.error("Error fetching user role:", error);
-          } else if (data && data.length > 0) {
-            console.log("User role fetched:", data[0].role);
-            setUserRole(data[0].role);
-          } else {
-            console.log("No user data found");
-          }
-        } catch (error) {
-          console.error("Error in role fetch:", error);
-        }
-      }
-      
       setIsLoading(false);
-    };
-
-    checkSession();
+    });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // Enhanced protected route component with role checking
-  const ProtectedRoute = ({ 
-    children, 
-    requiredRole 
-  }: { 
-    children: React.ReactNode; 
-    requiredRole?: string 
-  }) => {
-    console.log("Protected route check - User:", !!user, "Role:", userRole, "Required:", requiredRole);
-    
+  // Create a protected route component
+  const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) => {
     if (isLoading) {
       return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
     
     if (!user) {
-      toast.error("Please login to access this page");
       return <Navigate to="/login" />;
     }
     
-    // Check if a specific role is required and if user has that role
-    if (requiredRole && userRole !== requiredRole) {
-      toast.error(`Access denied. This area is only for ${requiredRole}s.`);
-      
-      // Redirect to the appropriate dashboard based on user role
-      if (userRole === 'patient') {
-        return <Navigate to="/patient-dashboard" />;
-      } else if (userRole === 'doctor') {
-        return <Navigate to="/doctor-dashboard" />;
-      } else if (userRole === 'pharmacist') {
-        return <Navigate to="/pharmacist-dashboard" />;
-      } else {
-        return <Navigate to="/login" />;
-      }
-    }
+    // For routes that require a specific role, we would need to check user role here
+    // This is left as an enhancement for later
     
     return <>{children}</>;
   };
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={{ user, isLoading, userRole }}>
+      <AuthContext.Provider value={{ user, isLoading }}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -164,30 +80,30 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/patient-signup" element={<PatientSignup />} />
               
-              {/* Protected Routes with role requirements */}
+              {/* Protected Routes */}
               <Route path="/doctor-dashboard" element={
-                <ProtectedRoute requiredRole="doctor"><DoctorDashboard /></ProtectedRoute>
+                <ProtectedRoute><DoctorDashboard /></ProtectedRoute>
               } />
               <Route path="/doctor-dashboard/appointments" element={
-                <ProtectedRoute requiredRole="doctor"><DoctorAppointments /></ProtectedRoute>
+                <ProtectedRoute><DoctorAppointments /></ProtectedRoute>
               } />
               <Route path="/doctor-dashboard/pharmacists" element={
-                <ProtectedRoute requiredRole="doctor"><PharmacistManagement /></ProtectedRoute>
+                <ProtectedRoute><PharmacistManagement /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard" element={
-                <ProtectedRoute requiredRole="patient"><PatientDashboard /></ProtectedRoute>
+                <ProtectedRoute><PatientDashboard /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard/profile" element={
-                <ProtectedRoute requiredRole="patient"><PatientProfile /></ProtectedRoute>
+                <ProtectedRoute><PatientProfile /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard/medical-records" element={
-                <ProtectedRoute requiredRole="patient"><PatientMedicalRecords /></ProtectedRoute>
+                <ProtectedRoute><PatientMedicalRecords /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard/appointments" element={
-                <ProtectedRoute requiredRole="patient"><PatientAppointments /></ProtectedRoute>
+                <ProtectedRoute><PatientAppointments /></ProtectedRoute>
               } />
               <Route path="/pharmacist-dashboard" element={
-                <ProtectedRoute requiredRole="pharmacist"><PharmacistDashboard /></ProtectedRoute>
+                <ProtectedRoute><PharmacistDashboard /></ProtectedRoute>
               } />
               
               <Route path="*" element={<NotFound />} />

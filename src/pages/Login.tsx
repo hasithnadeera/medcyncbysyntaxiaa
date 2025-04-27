@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,47 +15,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  // Check if already logged in
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        // Already logged in, fetch role and redirect
-        try {
-          const { data, error } = await supabase.rpc('get_user_profile', { 
-            user_id: session.user.id 
-          });
-          
-          if (!error && data && data.length > 0) {
-            const role = data[0].role;
-            redirectBasedOnRole(role);
-          }
-        } catch (error) {
-          console.error("Error checking role:", error);
-        }
-      }
-    };
-    
-    checkAuthStatus();
-  }, [navigate]);
-
-  const redirectBasedOnRole = (role: string) => {
-    switch (role) {
-      case 'patient':
-        navigate('/patient-dashboard');
-        break;
-      case 'doctor':
-        navigate('/doctor-dashboard');
-        break;
-      case 'pharmacist':
-        navigate('/pharmacist-dashboard');
-        break;
-      default:
-        // Default to patient dashboard if role is unknown
-        navigate('/patient-dashboard');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,24 +41,30 @@ const Login = () => {
         throw new Error("No user data returned");
       }
 
-      // Get user role from database
+      // Try to get user role from database
       try {
-        const { data: userData, error: userError } = await supabase.rpc('get_user_profile', {
-          user_id: data.user.id
-        });
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
         if (userError) {
           console.error("Error fetching user data:", userError);
-          toast.error("Could not retrieve your profile information");
           // If there's a database error, still allow login but direct to patient dashboard by default
+          toast.success("Login successful! Redirecting to patient dashboard.");
           navigate('/patient-dashboard');
           return;
         }
 
         toast.success("Login successful!");
 
-        if (userData && userData.length > 0) {
-          redirectBasedOnRole(userData[0].role);
+        if (userData?.role === 'patient') {
+          navigate('/patient-dashboard');
+        } else if (userData?.role === 'doctor') {
+          navigate('/doctor-dashboard');
+        } else if (userData?.role === 'pharmacist') {
+          navigate('/pharmacist-dashboard');
         } else {
           // If no role is found, default to patient dashboard
           toast.info("User role not found. Redirecting to patient dashboard.");
@@ -108,7 +73,7 @@ const Login = () => {
       } catch (profileError) {
         console.error("Profile fetch error:", profileError);
         // If there's any error fetching the profile, default to patient dashboard
-        toast.error("Login successful but couldn't retrieve your profile!");
+        toast.success("Login successful! Redirecting to patient dashboard.");
         navigate('/patient-dashboard');
       }
     } catch (error: any) {
