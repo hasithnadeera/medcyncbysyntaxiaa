@@ -1,12 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-
 const HomeContent = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Today's Appointments</h3>
@@ -19,18 +16,10 @@ const HomeContent = () => {
       </div>
 
       <div className="flex gap-4">
-        <Button 
-          onClick={() => navigate("/patient-signup")}
-          className="bg-medsync-primary"
-        >
+        <Button onClick={() => navigate("/patient-signup")} className="bg-medsync-primary">
           Add New Patient
         </Button>
-        <Button 
-          variant="outline"
-          onClick={() => console.log("Register Pharmacist clicked")}
-        >
-          Register Pharmacist
-        </Button>
+        
       </div>
 
       <Card className="p-6">
@@ -48,59 +37,37 @@ const HomeContent = () => {
             <label htmlFor="patientId" className="block text-sm font-medium text-gray-700">
               Patient ID
             </label>
-            <input
-              type="text"
-              id="patientId"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            />
+            <input type="text" id="patientId" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
           </div>
           <div>
             <label htmlFor="illness" className="block text-sm font-medium text-gray-700">
               Illness
             </label>
-            <input
-              type="text"
-              id="illness"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            />
+            <input type="text" id="illness" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
           </div>
           <div>
             <label htmlFor="symptoms" className="block text-sm font-medium text-gray-700">
               Symptoms
             </label>
-            <textarea
-              id="symptoms"
-              rows={3}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            />
+            <textarea id="symptoms" rows={3} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
           </div>
           <div>
             <label htmlFor="prescription" className="block text-sm font-medium text-gray-700">
               Prescription
             </label>
-            <textarea
-              id="prescription"
-              rows={3}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            />
+            <textarea id="prescription" rows={3} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
           </div>
           <div>
             <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
               Notes
             </label>
-            <textarea
-              id="notes"
-              rows={3}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            />
+            <textarea id="notes" rows={3} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2" />
           </div>
           <Button type="submit" className="bg-medsync-primary">
             Save Record
           </Button>
         </form>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default HomeContent;
