@@ -60,24 +60,19 @@ export function MedicalRecordForm() {
         return;
       }
       
-      // Create prescription record with medicines as JSON
-      const medicines = {
-        details: data.prescription,
-        illness: data.illness,
-        symptoms: data.symptoms,
-        notes: data.notes
-      };
-      
-      const { error: prescriptionError } = await supabase
-        .from('prescriptions')
+      // Create medical record - this will trigger the prescription creation
+      const { error: recordError } = await supabase
+        .from('medical_records')
         .insert({
           patient_id: data.patientId,
-          medicines: medicines,
-          status: 'Pending'
+          illness: data.illness,
+          symptoms: data.symptoms,
+          prescription: data.prescription,
+          notes: data.notes
         });
         
-      if (prescriptionError) {
-        console.error("Error creating prescription:", prescriptionError);
+      if (recordError) {
+        console.error("Error creating medical record:", recordError);
         toast.error("Failed to create medical record");
         setIsSubmitting(false);
         return;

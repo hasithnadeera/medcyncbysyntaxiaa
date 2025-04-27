@@ -44,6 +44,44 @@ export type Database = {
           },
         ]
       }
+      medical_records: {
+        Row: {
+          created_at: string
+          id: string
+          illness: string
+          notes: string | null
+          patient_id: string
+          prescription: string
+          symptoms: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          illness: string
+          notes?: string | null
+          patient_id: string
+          prescription: string
+          symptoms: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          illness?: string
+          notes?: string | null
+          patient_id?: string
+          prescription?: string
+          symptoms?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prescriptions: {
         Row: {
           created_at: string
