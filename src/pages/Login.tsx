@@ -22,12 +22,13 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Sign in with Supabase Auth
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (signInError) throw signInError;
 
       if (!data.user) {
         throw new Error("No user data returned");
@@ -38,25 +39,36 @@ const Login = () => {
         .from('users')
         .select('role')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
 
-      if (userError) throw userError;
+      if (userError) {
+        console.error("Error fetching user data:", userError);
+        toast.error("Login successful, but there was an issue retrieving your user profile.");
+        navigate('/'); // Fallback to home page if role can't be determined
+        return;
+      }
 
       toast.success("Login successful!");
 
       // Route based on user role
-      switch (userData.role) {
-        case 'doctor':
-          navigate('/doctor-dashboard');
-          break;
-        case 'patient':
-          navigate('/patient-dashboard');
-          break;
-        case 'pharmacist':
-          navigate('/pharmacist-dashboard');
-          break;
-        default:
-          navigate('/');
+      if (userData) {
+        switch (userData.role) {
+          case 'doctor':
+            navigate('/doctor-dashboard');
+            break;
+          case 'patient':
+            navigate('/patient-dashboard');
+            break;
+          case 'pharmacist':
+            navigate('/pharmacist-dashboard');
+            break;
+          default:
+            navigate('/');
+        }
+      } else {
+        // If userData is null (maybe user just registered and profile not created yet)
+        toast.error("User profile not found. Please contact support.");
+        navigate('/');
       }
     } catch (error: any) {
       setError(error.message);
