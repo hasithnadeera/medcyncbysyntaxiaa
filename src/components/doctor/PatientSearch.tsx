@@ -93,7 +93,7 @@ export function PatientSearch() {
         <TabsList>
           <TabsTrigger value="name">By Name</TabsTrigger>
           
-          <TabsTrigger value="phone">By Phone</TabsTrigger>
+          
         </TabsList>
       </Tabs>
       
