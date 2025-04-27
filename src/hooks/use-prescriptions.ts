@@ -23,3 +23,31 @@ export function usePrescriptions() {
     }
   });
 }
+
+export function useTodayPrescriptionStats() {
+  return useQuery({
+    queryKey: ['prescriptions-stats-today'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Get all prescriptions from today
+      const { data: todayPrescriptions, error: todayError } = await supabase
+        .from('prescriptions')
+        .select('status')
+        .gte('created_at', today)
+        .lte('created_at', today + 'T23:59:59');
+
+      if (todayError) throw todayError;
+
+      const total = todayPrescriptions?.length || 0;
+      const pending = todayPrescriptions?.filter(p => p.status === 'Pending').length || 0;
+      const issued = todayPrescriptions?.filter(p => p.status === 'Issued').length || 0;
+
+      return {
+        total,
+        pending,
+        issued
+      };
+    }
+  });
+}

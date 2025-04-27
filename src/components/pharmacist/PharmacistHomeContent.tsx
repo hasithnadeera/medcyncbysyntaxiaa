@@ -15,12 +15,14 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { usePrescriptions } from "@/hooks/use-prescriptions";
+import { CalendarDays, ListCheck, Check } from "lucide-react";
+import { usePrescriptions, useTodayPrescriptionStats } from "@/hooks/use-prescriptions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const PharmacistHomeContent = () => {
   const { data: prescriptions, isLoading, refetch } = usePrescriptions();
+  const { data: todayStats } = useTodayPrescriptionStats();
 
   const handleMarkAsIssued = async (prescriptionId: string) => {
     const { error } = await supabase
@@ -39,24 +41,53 @@ const PharmacistHomeContent = () => {
 
   return (
     <div className="space-y-8">
-      {/* Stats Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Today's Overview</CardTitle>
-          <CardDescription>Summary of prescriptions handled today</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold">
-            {prescriptions?.length || 0}
-          </div>
-          <p className="text-sm text-muted-foreground">Pending prescriptions to be handled</p>
-        </CardContent>
-      </Card>
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Today</CardTitle>
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{todayStats?.total || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Prescriptions handled today
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <ListCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{todayStats?.pending || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Pending prescriptions
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Issued</CardTitle>
+            <Check className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{todayStats?.issued || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Prescriptions issued today
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Pending Prescriptions */}
       <Card>
         <CardHeader>
           <CardTitle>Pending Prescriptions</CardTitle>
+          <CardDescription>Prescriptions waiting to be issued</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -99,12 +130,18 @@ const PharmacistHomeContent = () => {
                         }
                       </ul>
                     </TableCell>
-                    <TableCell>{prescription.status}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {prescription.status}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <Button 
                         size="sm"
                         onClick={() => handleMarkAsIssued(prescription.id)}
+                        className="flex items-center gap-2"
                       >
+                        <Check className="h-4 w-4" />
                         Mark as Issued
                       </Button>
                     </TableCell>
