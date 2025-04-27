@@ -120,7 +120,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_if_user_is_authenticated: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       appointment_status: "Booked" | "Completed" | "Canceled"

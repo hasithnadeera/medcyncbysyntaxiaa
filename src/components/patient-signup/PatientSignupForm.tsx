@@ -59,8 +59,8 @@ export function PatientSignupForm() {
 
       // Format phone number and date for consistency
       const formattedPhoneNumber = values.phoneNumber.startsWith("07") 
-        ? values.phoneNumber.substring(1)
-        : values.phoneNumber;
+        ? values.phoneNumber
+        : "0" + values.phoneNumber;
       
       const formattedDateOfBirth = format(values.dateOfBirth, 'yyyy-MM-dd');
       
