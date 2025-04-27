@@ -5,7 +5,8 @@ import {
   Calendar, 
   Activity, 
   LogOut,
-  UserPlus 
+  UserPlus,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -48,6 +49,14 @@ export function DashboardSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={() => navigate("/patient-signup")}
@@ -57,10 +66,20 @@ export function DashboardSidebar() {
                   <span>Add New Patient</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => navigate("/doctor-dashboard/pharmacists")}
+                  tooltip="Manage Pharmacists"
+                >
+                  <Users />
+                  <span>Manage Pharmacists</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter className="mt-auto border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
