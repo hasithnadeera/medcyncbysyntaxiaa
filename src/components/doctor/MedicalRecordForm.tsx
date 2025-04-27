@@ -50,15 +50,16 @@ export function MedicalRecordForm() {
     if (!patientId || patientId.length < 30) return; // Basic UUID validation
     
     try {
+      // Use direct query instead of requiring role='patient'
       const { data, error } = await supabase
         .from('users')
         .select('name')
         .eq('id', patientId)
-        .eq('role', 'patient')
         .single();
         
       if (error || !data) {
         setPatientName(null);
+        toast.error("Patient not found. Please check the Patient ID");
         return;
       }
       
@@ -67,6 +68,7 @@ export function MedicalRecordForm() {
     } catch (error) {
       console.error("Error verifying patient:", error);
       setPatientName(null);
+      toast.error("Error verifying patient");
     }
   };
 
@@ -84,12 +86,11 @@ export function MedicalRecordForm() {
     setIsSubmitting(true);
     
     try {
-      // First, verify patient exists
+      // First, verify patient exists - remove role check
       const { data: patientData, error: patientError } = await supabase
         .from('users')
         .select('id')
         .eq('id', data.patientId)
-        .eq('role', 'patient')
         .single();
         
       if (patientError || !patientData) {
