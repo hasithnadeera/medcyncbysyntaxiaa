@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +43,27 @@ const AppointmentsList = () => {
     retry: 1,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        },
+        (payload) => {
+          queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const deleteAppointmentMutation = useMutation({
     mutationFn: async (appointmentId: string) => {
