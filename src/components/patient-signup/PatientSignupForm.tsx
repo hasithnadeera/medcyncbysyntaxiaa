@@ -49,7 +49,6 @@ export function PatientSignupForm() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
-        phone: values.phoneNumber,
       });
 
       if (authError) throw authError;

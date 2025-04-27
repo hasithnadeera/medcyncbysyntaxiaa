@@ -1,5 +1,6 @@
 
 import { PatientSignupForm } from "@/components/patient-signup/PatientSignupForm";
+import { Link } from "react-router-dom";
 
 const PatientSignup = () => {
   return (
@@ -12,10 +13,17 @@ const PatientSignup = () => {
           </p>
         </div>
         <PatientSignupForm />
+        <div className="mt-4 text-center">
+          <Link 
+            to="/login" 
+            className="text-sm text-medsync-primary hover:text-medsync-primary/90"
+          >
+            Already registered? Login
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
 
 export default PatientSignup;
-
