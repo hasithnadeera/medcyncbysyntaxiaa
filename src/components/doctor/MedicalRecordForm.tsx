@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -46,7 +45,7 @@ export function MedicalRecordForm() {
 
   const patientId = form.watch("patientId");
 
-  // Fetch patient name when ID changes
+  // Fetch patient name when verifying
   const verifyPatient = async () => {
     if (!patientId || patientId.length < 30) {
       setPatientName(null);
@@ -55,30 +54,25 @@ export function MedicalRecordForm() {
     
     setIsVerifying(true);
     try {
-      // Use direct query instead of requiring role='patient'
+      // Use the get_user_profile function which is designed to safely retrieve user data
       const { data, error } = await supabase
-        .from('users')
-        .select('name')
-        .eq('id', patientId)
-        .single();
+        .rpc('get_user_profile', { user_id: patientId });
         
       if (error) {
         console.error("Error verifying patient:", error);
         setPatientName(null);
-        toast.error("Patient not found. Please check the Patient ID");
-        setIsVerifying(false);
+        toast.error("Error verifying patient: " + error.message);
         return;
       }
       
-      if (!data) {
+      if (!data || data.length === 0) {
         setPatientName(null);
         toast.error("Patient not found. Please check the Patient ID");
-        setIsVerifying(false);
         return;
       }
       
-      setPatientName(data.name);
-      toast.success(`Patient verified: ${data.name}`);
+      setPatientName(data[0].name);
+      toast.success(`Patient verified: ${data[0].name}`);
     } catch (error) {
       console.error("Error verifying patient:", error);
       setPatientName(null);
