@@ -37,11 +37,10 @@ export default function Hero() {
           <div className="relative lg:ml-auto">
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"
+                src="https://img.playbook.com/NIyAGO2sQ_m8NtfHc039-Z4V0hzQzaPM3-TqTcfsO4g/Z3M6Ly9wbGF5Ym9v/ay1hc3NldHMtcHVi/bGljLzAwODYwMDc4/LTE0MDAtNGNkZC1i/N2NjLWUzNDg5Yjcw/ZThiMw"
                 alt="Healthcare Professional"
-                className="rounded-2xl shadow-2xl w-full object-cover"
+                className="w-full object-cover"
               />
-              <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-900/10"></div>
             </div>
           </div>
         </div>
