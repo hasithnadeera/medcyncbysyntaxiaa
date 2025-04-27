@@ -1,38 +1,58 @@
+
 import { Home, Search, Calendar, Activity, LogOut, UserPlus, Users } from "lucide-react";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from "@/components/ui/sidebar";
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem,
+  SidebarFooter
+} from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
-const menuItems = [{
-  title: "Home",
-  icon: Home,
-  path: "/doctor-dashboard"
-}, {
-  title: "Search Patients",
-  icon: Search,
-  path: "/doctor-dashboard/search"
-}, {
-  title: "Appointments",
-  icon: Calendar,
-  path: "/doctor-dashboard/appointments"
-}, {
-  title: "Patient Analytics",
-  icon: Activity,
-  path: "/doctor-dashboard/analytics"
-}];
+
+const menuItems = [
+  {
+    title: "Home",
+    icon: Home,
+    path: "/doctor-dashboard"
+  },
+  {
+    title: "Search Patients",
+    icon: Search,
+    path: "/doctor-dashboard/search"
+  },
+  {
+    title: "Appointments",
+    icon: Calendar,
+    path: "/doctor-dashboard/appointments"
+  },
+  {
+    title: "Patient Analytics",
+    icon: Activity,
+    path: "/doctor-dashboard/analytics"
+  }
+];
+
 export function DashboardSidebar() {
   const navigate = useNavigate();
-  return <Sidebar>
+
+  return (
+    <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>
-        </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map(item => <SidebarMenuItem key={item.title}>
+              {menuItems.map(item => (
+                <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton onClick={() => navigate(item.path)} tooltip={item.title}>
-                    <item.icon />
+                    <item.icon className="h-5 w-5" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
-                </SidebarMenuItem>)}
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -43,13 +63,13 @@ export function DashboardSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigate("/patient-signup")} tooltip="Add New Patient">
-                  <UserPlus />
+                  <UserPlus className="h-5 w-5" />
                   <span>Add New Patient</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigate("/doctor-dashboard/pharmacists")} tooltip="Manage Pharmacists">
-                  <Users />
+                  <Users className="h-5 w-5" />
                   <span>Manage Pharmacists</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -58,15 +78,16 @@ export function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto border-t border-sidebar-border">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => console.log("Logout clicked")} tooltip="Logout" className="text-red-500 hover:text-red-600 hover:bg-red-50">
-              <LogOut className="text-red-500" />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="border-t p-4">
+        <SidebarMenuButton
+          onClick={() => navigate("/")}
+          className="w-full justify-start text-red-600 hover:text-red-700"
+          tooltip="Sign Out"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Sign Out</span>
+        </SidebarMenuButton>
       </SidebarFooter>
-    </Sidebar>;
+    </Sidebar>
+  );
 }

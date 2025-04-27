@@ -1,5 +1,5 @@
 
-import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardLayout from "@/components/doctor/DashboardLayout";
 import HomeContent from "@/components/doctor/HomeContent";
 import { DashboardSidebar } from "@/components/doctor/DashboardSidebar";

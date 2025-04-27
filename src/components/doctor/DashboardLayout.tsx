@@ -11,12 +11,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="sticky top-0 z-10 bg-white border-b">
         <div className="flex items-center h-16 px-4">
           <SidebarTrigger />
-          <h1 className="ml-4 text-xl font-semibold">Doctor Dashboard</h1>
+          <h1 className="ml-4 text-lg font-medium">Doctor Dashboard</h1>
         </div>
       </div>
-      <div className="p-6">
+      <main className="p-6">
         {children}
-      </div>
+      </main>
     </SidebarInset>
   );
 };
