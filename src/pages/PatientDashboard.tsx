@@ -7,11 +7,11 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 const PatientDashboard = () => {
   return (
     <PatientDashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 border-b pb-4">
-          <SidebarTrigger />
-          <h1 className="text-xl font-semibold tracking-tight">Patient Dashboard</h1>
-        </div>
+      <div className="flex items-center gap-4 p-4 border-b">
+        <SidebarTrigger />
+        <h1 className="text-xl font-medium">Patient Dashboard</h1>
+      </div>
+      <div className="p-4">
         <PatientHomeContent />
       </div>
     </PatientDashboardLayout>
@@ -19,3 +19,4 @@ const PatientDashboard = () => {
 };
 
 export default PatientDashboard;
+

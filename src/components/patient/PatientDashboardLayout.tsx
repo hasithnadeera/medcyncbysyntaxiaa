@@ -9,19 +9,16 @@ interface PatientDashboardLayoutProps {
 
 const PatientDashboardLayout = ({ children }: PatientDashboardLayoutProps) => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <PatientSidebar />
-          <SidebarInset className="px-4 md:px-8 py-6">
-            <div className="w-full max-w-7xl mx-auto">
-              {children}
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-white">
+        <PatientSidebar />
+        <SidebarInset className="flex-1">
+          {children}
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 
 export default PatientDashboardLayout;
+
