@@ -22,18 +22,14 @@ const DoctorDashboard = () => {
           return;
         }
 
-        // Get the user's name directly from the users table
-        const { data, error } = await supabase
-          .from('users')
-          .select('name')
-          .eq('id', user.id)
-          .single();
+        // Use the new get_user_profile function to fetch user data
+        const { data, error } = await supabase.rpc('get_user_profile', { user_id: user.id });
 
         if (error) {
           console.error("Error fetching user data:", error);
           toast.error("Could not retrieve your profile information");
-        } else if (data?.name) {
-          setUserName(data.name);
+        } else if (data && data.length > 0 && data[0].name) {
+          setUserName(data[0].name);
         }
       } catch (error) {
         console.error("Error in fetchUserName:", error);

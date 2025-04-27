@@ -124,6 +124,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      get_user_profile: {
+        Args: { user_id: string }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          role: string
+        }[]
+      }
     }
     Enums: {
       appointment_status: "Booked" | "Completed" | "Canceled"
