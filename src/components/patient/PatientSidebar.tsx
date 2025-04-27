@@ -12,7 +12,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 const PatientSidebar = () => {
@@ -48,7 +47,6 @@ const PatientSidebar = () => {
         <div className="flex items-center gap-2 px-4">
           <span className="text-lg font-semibold">MedSync</span>
         </div>
-        <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
