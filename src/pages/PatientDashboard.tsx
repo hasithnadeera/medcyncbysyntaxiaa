@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import PatientDashboardLayout from "@/components/patient/PatientDashboardLayout";
 import PatientHomeContent from "@/components/patient/PatientHomeContent";
@@ -5,16 +6,16 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
 const PatientDashboard = () => {
   const [userName, setUserName] = useState<string>("");
   const navigate = useNavigate();
+  
   useEffect(() => {
     const fetchUserName = async () => {
       try {
         const {
-          data: {
-            user
-          }
+          data: { user }
         } = await supabase.auth.getUser();
         if (!user) {
           navigate('/login');
@@ -41,7 +42,9 @@ const PatientDashboard = () => {
     };
     fetchUserName();
   }, [navigate]);
-  return <PatientDashboardLayout>
+  
+  return (
+    <PatientDashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-4 border-b pb-4">
           <SidebarTrigger />
@@ -51,6 +54,8 @@ const PatientDashboard = () => {
         </div>
         <PatientHomeContent />
       </div>
-    </PatientDashboardLayout>;
+    </PatientDashboardLayout>
+  );
 };
+
 export default PatientDashboard;

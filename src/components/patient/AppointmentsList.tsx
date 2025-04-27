@@ -5,11 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Clock } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 type Appointment = Database['public']['Tables']['appointments']['Row'];
 
 const AppointmentsList = () => {
-  const { data: appointments } = useQuery({
+  const { data: appointments, isLoading, error } = useQuery({
     queryKey: ['patient-appointments'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -21,10 +22,20 @@ const AppointmentsList = () => {
         .eq('patient_id', user.id)
         .order('appointment_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching appointments:", error);
+        throw error;
+      }
+      
+      console.log("Fetched appointments:", data);
       return data as Appointment[];
     }
   });
+
+  if (error) {
+    console.error("Error in appointment query:", error);
+    toast.error("Failed to load appointments");
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -72,7 +83,9 @@ const AppointmentsList = () => {
           <CardTitle>Upcoming Appointments</CardTitle>
         </CardHeader>
         <CardContent>
-          {upcomingAppointments.length > 0 ? (
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading appointments...</p>
+          ) : upcomingAppointments.length > 0 ? (
             upcomingAppointments.map((appointment) => (
               <AppointmentItem key={appointment.id} appointment={appointment} />
             ))
@@ -87,7 +100,9 @@ const AppointmentsList = () => {
           <CardTitle>Past Appointments</CardTitle>
         </CardHeader>
         <CardContent>
-          {pastAppointments.length > 0 ? (
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading appointments...</p>
+          ) : pastAppointments.length > 0 ? (
             pastAppointments.map((appointment) => (
               <AppointmentItem key={appointment.id} appointment={appointment} />
             ))
