@@ -8,7 +8,7 @@ import { DateOfBirthField } from "./DateOfBirthField";
 import { IdNumberField } from "./IdNumberField";
 import { AddressField } from "./AddressField";
 import { GenderField } from "./GenderField";
-import { PhoneNumberField } from "./PhoneNumberField";
+import { OTPVerification } from "./OTPVerification";
 import { 
   patientSignupSchema, 
   type PatientSignupForm as PatientSignupFormType 
@@ -24,6 +24,7 @@ import { format } from "date-fns";
 export function PatientSignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<PatientSignupFormType>({
@@ -37,11 +38,14 @@ export function PatientSignupForm() {
   });
 
   const onSubmit = async (values: PatientSignupFormType) => {
+    if (!isPhoneVerified) {
+      toast.error("Please verify your phone number first");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
-      
-      console.log("Form values:", values);
       
       // Format phone number with Sri Lankan country code for consistency
       const formattedPhoneNumber = values.phoneNumber.startsWith("07") 
@@ -110,11 +114,14 @@ export function PatientSignupForm() {
         <IdNumberField form={form} />
         <AddressField form={form} />
         <GenderField form={form} />
-        <PhoneNumberField form={form} />
+        <OTPVerification 
+          form={form} 
+          onVerificationComplete={() => setIsPhoneVerified(true)} 
+        />
         <Button 
           type="submit" 
           className="w-full bg-medsync-primary"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isPhoneVerified}
         >
           {isSubmitting ? "Signing up..." : "Sign Up"}
         </Button>
