@@ -32,9 +32,18 @@ const formSchema = z.object({
   dateOfBirth: z.date({
     required_error: "Date of birth is required.",
   }),
-  idNumber: z.string().min(1, {
-    message: "ID number is required.",
-  }),
+  idNumber: z.string().refine(
+    (value) => {
+      // Check for 9-digit ID ending with 'v' or 'V'
+      const oldFormat = /^\d{9}[vV]$/;
+      // Check for 12-digit ID
+      const newFormat = /^\d{12}$/;
+      return oldFormat.test(value) || newFormat.test(value);
+    },
+    {
+      message: "ID must be either 9 digits ending with 'v' (e.g., 690761122v) or 12 digits (e.g., 200227401352)",
+    }
+  ),
   address: z.string().min(1, {
     message: "Address is required.",
   }),
