@@ -3,10 +3,10 @@ import { useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardLayout from "@/components/doctor/DashboardLayout";
 import { DashboardSidebar } from "@/components/doctor/DashboardSidebar";
-import { DoctorAppointmentsView } from "@/components/doctor/DoctorAppointmentsView";
+import { PatientSearch } from "@/components/doctor/PatientSearch";
 import { useDoctorAuth } from "@/utils/authHelpers";
 
-const DoctorAppointments = () => {
+const DoctorSearchPatients = () => {
   const { checkAccess } = useDoctorAuth();
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const DoctorAppointments = () => {
         <DashboardSidebar />
         <main className="flex-1">
           <DashboardLayout>
-            <DoctorAppointmentsView />
+            <PatientSearch />
           </DashboardLayout>
         </main>
       </div>
@@ -27,4 +27,4 @@ const DoctorAppointments = () => {
   );
 };
 
-export default DoctorAppointments;
+export default DoctorSearchPatients;

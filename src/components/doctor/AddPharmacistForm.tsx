@@ -1,3 +1,5 @@
+
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DialogClose } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const pharmacistFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -25,11 +29,15 @@ const pharmacistFormSchema = z.object({
   gender: z.enum(["male", "female"], {
     required_error: "Please select a gender",
   }),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type PharmacistFormValues = z.infer<typeof pharmacistFormSchema>;
 
 export function AddPharmacistForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const form = useForm<PharmacistFormValues>({
     resolver: zodResolver(pharmacistFormSchema),
     defaultValues: {
@@ -39,11 +47,70 @@ export function AddPharmacistForm() {
       address: "",
       phone: "",
       gender: undefined,
+      email: "",
+      password: "",
     },
   });
 
-  function onSubmit(data: PharmacistFormValues) {
-    console.log(data);
+  async function onSubmit(data: PharmacistFormValues) {
+    setIsSubmitting(true);
+    
+    try {
+      // First, create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+      
+      if (authError) {
+        console.error("Error creating user account:", authError);
+        toast.error("Failed to create account: " + authError.message);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!authData.user) {
+        toast.error("Failed to create account");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Then, create pharmacist profile
+      const { error: profileError } = await supabase.from("users").insert({
+        id: authData.user.id,
+        name: data.name,
+        email: data.email,
+        id_number: data.idNumber,
+        dob: data.dateOfBirth,
+        address: data.address,
+        phone_number: data.phone,
+        gender: data.gender,
+        role: "pharmacist",
+      });
+      
+      if (profileError) {
+        console.error("Error creating pharmacist profile:", profileError);
+        toast.error("Failed to create pharmacist profile");
+        
+        // Try to clean up the auth user if profile creation failed
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        
+        setIsSubmitting(false);
+        return;
+      }
+      
+      toast.success("Pharmacist registered successfully!");
+      form.reset();
+      
+      // Close the dialog
+      document.querySelector('[data-state="open"] button[data-state="closed"]')?.click();
+      
+    } catch (error) {
+      console.error("Error in form submission:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -57,6 +124,34 @@ export function AddPharmacistForm() {
               <FormLabel>Full Name</FormLabel>
               <FormControl>
                 <Input placeholder="John Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="example@email.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="******" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -170,8 +265,9 @@ export function AddPharmacistForm() {
           <Button 
             type="submit" 
             className="bg-medsync-primary hover:bg-medsync-primary/90"
+            disabled={isSubmitting}
           >
-            Add Pharmacist
+            {isSubmitting ? "Adding..." : "Add Pharmacist"}
           </Button>
         </div>
       </form>

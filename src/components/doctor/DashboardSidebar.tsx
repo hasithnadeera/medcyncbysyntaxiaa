@@ -1,5 +1,15 @@
 
-import { Home, Search, Calendar, Activity, LogOut, UserPlus, Users } from "lucide-react";
+import { 
+  Home, 
+  Search, 
+  Calendar, 
+  Activity, 
+  LogOut, 
+  UserPlus, 
+  Users, 
+  FilePen,
+  Check 
+} from "lucide-react";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -13,10 +23,12 @@ import {
   SidebarHeader
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const menuItems = [
   {
-    title: "Home",
+    title: "Dashboard",
     icon: Home,
     path: "/doctor-dashboard"
   },
@@ -31,14 +43,30 @@ const menuItems = [
     path: "/doctor-dashboard/appointments"
   },
   {
-    title: "Patient Analytics",
-    icon: Activity,
-    path: "/doctor-dashboard/analytics"
+    title: "Medical Records",
+    icon: FilePen,
+    path: "/doctor-dashboard/records"
+  },
+  {
+    title: "Prescriptions",
+    icon: Check,
+    path: "/doctor-dashboard/prescriptions"
   }
 ];
 
 export function DashboardSidebar() {
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Signed out successfully");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out");
+    }
+  };
 
   return (
     <Sidebar>
@@ -88,7 +116,7 @@ export function DashboardSidebar() {
 
       <SidebarFooter className="border-t p-4">
         <SidebarMenuButton
-          onClick={() => navigate("/")}
+          onClick={handleSignOut}
           className="w-full justify-start text-red-600 hover:text-red-700"
           tooltip="Sign Out"
         >

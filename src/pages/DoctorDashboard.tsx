@@ -1,62 +1,21 @@
 
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardLayout from "@/components/doctor/DashboardLayout";
-import HomeContent from "@/components/doctor/HomeContent";
 import { DashboardSidebar } from "@/components/doctor/DashboardSidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useDoctorAuth } from "@/utils/authHelpers";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MedicalRecordForm } from "@/components/doctor/MedicalRecordForm";
+import { PatientSearch } from "@/components/doctor/PatientSearch";
+import { DoctorAppointmentsView } from "@/components/doctor/DoctorAppointmentsView";
+import { PrescriptionManager } from "@/components/doctor/PrescriptionManager";
 
 const DoctorDashboard = () => {
-  const [userName, setUserName] = useState<string>("");
-  const navigate = useNavigate();
+  const { checkAccess } = useDoctorAuth();
   
   useEffect(() => {
-    const checkDoctorAccess = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          toast.error("Please login to access the dashboard");
-          navigate('/login');
-          return;
-        }
-
-        // Get user profile including role
-        const { data, error } = await supabase.rpc('get_user_profile', {
-          user_id: user.id
-        });
-
-        if (error) {
-          console.error("Error fetching user data:", error);
-          toast.error("Could not verify your access");
-          navigate('/login');
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          toast.error("Could not retrieve your profile information");
-          navigate('/login');
-          return;
-        }
-        
-        if (data[0].role !== 'doctor') {
-          toast.error("Unauthorized access. This area is for doctors only.");
-          navigate('/login');
-          return;
-        }
-
-        setUserName(data[0].name || "");
-      } catch (error) {
-        console.error("Error in checkDoctorAccess:", error);
-        toast.error("An unexpected error occurred");
-        navigate('/login');
-      }
-    };
-
-    checkDoctorAccess();
-  }, [navigate]);
+    checkAccess();
+  }, [checkAccess]);
 
   return (
     <SidebarProvider>
@@ -64,10 +23,30 @@ const DoctorDashboard = () => {
         <DashboardSidebar />
         <main className="flex-1">
           <DashboardLayout>
-            <div className="mb-6">
+            <Tabs defaultValue="records" className="mb-6">
+              <TabsList>
+                <TabsTrigger value="records">Medical Records</TabsTrigger>
+                <TabsTrigger value="search">Search Patients</TabsTrigger>
+                <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+              </TabsList>
               
-            </div>
-            <HomeContent />
+              <TabsContent value="records" className="mt-6">
+                <MedicalRecordForm />
+              </TabsContent>
+              
+              <TabsContent value="search" className="mt-6">
+                <PatientSearch />
+              </TabsContent>
+              
+              <TabsContent value="appointments" className="mt-6">
+                <DoctorAppointmentsView />
+              </TabsContent>
+              
+              <TabsContent value="prescriptions" className="mt-6">
+                <PrescriptionManager />
+              </TabsContent>
+            </Tabs>
           </DashboardLayout>
         </main>
       </div>

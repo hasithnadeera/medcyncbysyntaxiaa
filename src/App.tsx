@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import PatientSignup from "./pages/PatientSignup";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import DoctorAppointments from "./pages/DoctorAppointments";
+import DoctorSearchPatients from "./pages/DoctorSearchPatients";
 import PharmacistManagement from "./pages/PharmacistManagement";
 import PatientDashboard from "./pages/PatientDashboard";
 import PatientProfile from "./pages/PatientProfile";
@@ -80,16 +81,21 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/patient-signup" element={<PatientSignup />} />
               
-              {/* Protected Routes */}
+              {/* Doctor Routes */}
               <Route path="/doctor-dashboard" element={
                 <ProtectedRoute><DoctorDashboard /></ProtectedRoute>
               } />
               <Route path="/doctor-dashboard/appointments" element={
                 <ProtectedRoute><DoctorAppointments /></ProtectedRoute>
               } />
+              <Route path="/doctor-dashboard/search" element={
+                <ProtectedRoute><DoctorSearchPatients /></ProtectedRoute>
+              } />
               <Route path="/doctor-dashboard/pharmacists" element={
                 <ProtectedRoute><PharmacistManagement /></ProtectedRoute>
               } />
+              
+              {/* Patient Routes */}
               <Route path="/patient-dashboard" element={
                 <ProtectedRoute><PatientDashboard /></ProtectedRoute>
               } />
@@ -102,6 +108,8 @@ const App = () => {
               <Route path="/patient-dashboard/appointments" element={
                 <ProtectedRoute><PatientAppointments /></ProtectedRoute>
               } />
+              
+              {/* Pharmacist Routes */}
               <Route path="/pharmacist-dashboard" element={
                 <ProtectedRoute><PharmacistDashboard /></ProtectedRoute>
               } />

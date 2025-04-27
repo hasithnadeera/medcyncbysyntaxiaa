@@ -1,53 +1,29 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardLayout from "@/components/doctor/DashboardLayout";
 import { DashboardSidebar } from "@/components/doctor/DashboardSidebar";
 import { PharmacistList } from "@/components/doctor/PharmacistList";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useDoctorAuth } from "@/utils/authHelpers";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { AddPharmacistForm } from "@/components/doctor/AddPharmacistForm";
+import { UserPlus } from "lucide-react";
 
 const PharmacistManagement = () => {
-  const navigate = useNavigate();
+  const { checkAccess } = useDoctorAuth();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    const checkDoctorAccess = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          toast.error("Please login to access the dashboard");
-          navigate('/login');
-          return;
-        }
-
-        // Get user profile including role
-        const { data, error } = await supabase.rpc('get_user_profile', {
-          user_id: user.id
-        });
-
-        if (error) {
-          console.error("Error fetching user data:", error);
-          toast.error("Could not verify your access");
-          navigate('/login');
-          return;
-        }
-
-        if (!data || data.length === 0 || data[0].role !== 'doctor') {
-          toast.error("Unauthorized access. This area is for doctors only.");
-          navigate('/login');
-          return;
-        }
-      } catch (error) {
-        console.error("Error in checkDoctorAccess:", error);
-        toast.error("An unexpected error occurred");
-        navigate('/login');
-      }
-    };
-
-    checkDoctorAccess();
-  }, [navigate]);
+    checkAccess();
+  }, [checkAccess]);
 
   return (
     <SidebarProvider>
@@ -55,6 +31,26 @@ const PharmacistManagement = () => {
         <DashboardSidebar />
         <main className="flex-1">
           <DashboardLayout>
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Manage Pharmacists</h2>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-medsync-primary hover:bg-medsync-primary/90 flex items-center gap-2">
+                    <UserPlus className="h-5 w-5" />
+                    Add New Pharmacist
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Add New Pharmacist</DialogTitle>
+                    <DialogDescription>
+                      Enter the pharmacist details below to register them in the system.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <AddPharmacistForm />
+                </DialogContent>
+              </Dialog>
+            </div>
             <PharmacistList />
           </DashboardLayout>
         </main>
