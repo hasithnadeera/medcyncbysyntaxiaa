@@ -57,37 +57,51 @@ export function DoctorAppointmentsView() {
   const fetchAppointments = async () => {
     setIsLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Using a direct query with join instead of RPC function
-      const { data, error } = await supabase
+      // First, fetch all appointments
+      const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          id, 
-          patient_id,
-          appointment_date,
-          appointment_time,
-          status,
-          users!appointments_patient_id_fkey (name)
-        `)
+        .select('*')
         .order('appointment_date', { ascending: false });
       
-      if (error) {
-        console.error("Error fetching appointments:", error);
+      if (appointmentsError) {
+        console.error("Error fetching appointments:", appointmentsError);
         toast.error("Failed to load appointments");
         setIsLoading(false);
         return;
       }
       
-      // Transform the data to match our Appointment type
-      const formattedData: Appointment[] = data.map(appointment => ({
+      // Create a map to store patient names by ID
+      const patientNames: Record<string, string> = {};
+      
+      // For each unique patient ID in the appointments, fetch the patient's name
+      const uniquePatientIds = [...new Set(appointmentsData.map(app => app.patient_id))];
+      
+      if (uniquePatientIds.length > 0) {
+        const { data: patientsData, error: patientsError } = await supabase
+          .from('users')
+          .select('id, name')
+          .in('id', uniquePatientIds);
+        
+        if (!patientsError && patientsData) {
+          patientsData.forEach(patient => {
+            patientNames[patient.id] = patient.name;
+          });
+        } else {
+          console.error("Error fetching patient names:", patientsError);
+        }
+      }
+      
+      // Transform the data to include patient names
+      const formattedData: Appointment[] = appointmentsData.map(appointment => ({
         id: appointment.id,
         patient_id: appointment.patient_id,
-        patient_name: appointment.users?.name || 'Unknown Patient',
+        patient_name: patientNames[appointment.patient_id] || 'Unknown Patient',
         appointment_date: appointment.appointment_date,
         appointment_time: appointment.appointment_time,
         status: appointment.status
       }));
+      
+      const today = new Date().toISOString().split('T')[0];
       
       // Split appointments into past and upcoming
       const past = formattedData.filter(app => 
