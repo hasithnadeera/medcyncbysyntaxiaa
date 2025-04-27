@@ -81,6 +81,7 @@ export type Database = {
           address: string
           created_at: string
           dob: string
+          email: string | null
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           id_number: string
@@ -92,6 +93,7 @@ export type Database = {
           address: string
           created_at?: string
           dob: string
+          email?: string | null
           gender: Database["public"]["Enums"]["gender_type"]
           id?: string
           id_number: string
@@ -103,6 +105,7 @@ export type Database = {
           address?: string
           created_at?: string
           dob?: string
+          email?: string | null
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
           id_number?: string

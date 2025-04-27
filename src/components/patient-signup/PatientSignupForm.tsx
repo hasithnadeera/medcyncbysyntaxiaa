@@ -4,11 +4,13 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { NameField } from "./NameField";
+import { EmailField } from "./EmailField";
+import { PasswordField } from "./PasswordField";
 import { DateOfBirthField } from "./DateOfBirthField";
 import { IdNumberField } from "./IdNumberField";
 import { AddressField } from "./AddressField";
 import { GenderField } from "./GenderField";
-import { OTPVerification } from "./OTPVerification";
+import { PhoneNumberField } from "./PhoneNumberField";
 import { 
   patientSignupSchema, 
   type PatientSignupForm as PatientSignupFormType 
@@ -24,13 +26,14 @@ import { format } from "date-fns";
 export function PatientSignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<PatientSignupFormType>({
     resolver: zodResolver(patientSignupSchema),
     defaultValues: {
       name: "",
+      email: "",
+      password: "",
       address: "",
       idNumber: "",
       phoneNumber: "",
@@ -38,62 +41,56 @@ export function PatientSignupForm() {
   });
 
   const onSubmit = async (values: PatientSignupFormType) => {
-    if (!isPhoneVerified) {
-      toast.error("Please verify your phone number first");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       setError(null);
       
-      // Format phone number with Sri Lankan country code for consistency
+      // Sign up the user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        phone: values.phoneNumber,
+      });
+
+      if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error("Failed to create user account");
+      }
+
+      // Format phone number and date for consistency
       const formattedPhoneNumber = values.phoneNumber.startsWith("07") 
-        ? values.phoneNumber.substring(1) // Remove the leading 0
+        ? values.phoneNumber.substring(1)
         : values.phoneNumber;
       
-      // Convert date to string format expected by the database
       const formattedDateOfBirth = format(values.dateOfBirth, 'yyyy-MM-dd');
       
-      // Insert user data using the Supabase client
-      const { data, error: insertError } = await supabase
+      // Insert user profile data
+      const { error: insertError } = await supabase
         .from('users')
         .insert({
+          id: authData.user.id,
           name: values.name,
+          email: values.email,
           dob: formattedDateOfBirth,
           id_number: values.idNumber,
           address: values.address,
           gender: values.gender,
           phone_number: formattedPhoneNumber,
-          role: 'patient' // Explicitly set the role to 'patient'
-        })
-        .select();
+          role: 'patient'
+        });
       
-      if (insertError) {
-        console.error("Database insertion error:", insertError);
-        
-        // Check for unique constraint errors
-        if (insertError.code === '23505') {
-          setError("A user with this phone number or ID number already exists.");
-        } else {
-          setError(`Registration failed: ${insertError.message}`);
-        }
-        return;
-      }
+      if (insertError) throw insertError;
       
-      // Show success message after successful DB insertion
       toast.success("Registration successful", {
-        description: "Your account has been created successfully.",
+        description: "Your account has been created. Please check your email for verification.",
       });
       
-      // Navigate to login page after successful signup
-      setTimeout(() => {
-        navigate("/login");
-      }, 1000);
+      navigate("/login");
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during form submission:", error);
-      setError("There was an error processing your registration. Please try again.");
+      setError(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -110,18 +107,17 @@ export function PatientSignupForm() {
       )}
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <NameField form={form} />
+        <EmailField form={form} />
+        <PasswordField form={form} />
         <DateOfBirthField form={form} />
         <IdNumberField form={form} />
         <AddressField form={form} />
         <GenderField form={form} />
-        <OTPVerification 
-          form={form} 
-          onVerificationComplete={() => setIsPhoneVerified(true)} 
-        />
+        <PhoneNumberField form={form} />
         <Button 
           type="submit" 
           className="w-full bg-medsync-primary"
-          disabled={isSubmitting || !isPhoneVerified}
+          disabled={isSubmitting}
         >
           {isSubmitting ? "Signing up..." : "Sign Up"}
         </Button>
