@@ -85,9 +85,18 @@ const PharmacistHomeContent = () => {
                     <TableCell>{prescription.patient.phone_number}</TableCell>
                     <TableCell>
                       <ul className="list-disc list-inside">
-                        {prescription.medicines.map((medicine: string, index: number) => (
-                          <li key={index}>{medicine}</li>
-                        ))}
+                        {Array.isArray(prescription.medicines) 
+                          ? prescription.medicines.map((medicine: string, index: number) => (
+                              <li key={index}>{medicine}</li>
+                            ))
+                          : typeof prescription.medicines === 'string' 
+                            ? [prescription.medicines].map((medicine: string, index: number) => (
+                                <li key={index}>{medicine}</li>
+                              ))
+                            : Object.keys(prescription.medicines).map((key: string, index: number) => (
+                                <li key={index}>{key}: {String(prescription.medicines[key])}</li>
+                              ))
+                        }
                       </ul>
                     </TableCell>
                     <TableCell>{prescription.status}</TableCell>
