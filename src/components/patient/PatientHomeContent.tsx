@@ -1,11 +1,9 @@
-
 import React from "react";
-import { CalendarClock, FileText, Prescription } from "lucide-react";
+import { CalendarClock, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-// Sample data for demonstration
 const upcomingAppointments = [
   { id: 1, doctor: "Dr. Emily Johnson", specialty: "Dermatologist", date: "May 3, 2025", time: "10:30 AM" },
   { id: 2, doctor: "Dr. Michael Smith", specialty: "Cardiologist", date: "May 15, 2025", time: "2:00 PM" },
@@ -25,7 +23,6 @@ const prescriptions = [
 const PatientHomeContent = () => {
   const navigate = useNavigate();
   
-  // Function to mask prescription names (show only first 3 letters)
   const maskPrescriptionName = (name: string) => {
     if (name.length <= 3) return name;
     return `${name.substring(0, 3)}${'•'.repeat(name.length - 3)}`;
@@ -100,7 +97,7 @@ const PatientHomeContent = () => {
       <Card className="md:col-span-2 lg:col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            <Prescription className="h-4 w-4 inline mr-2" />
+            <FileText className="h-4 w-4 inline mr-2" />
             Prescriptions
           </CardTitle>
         </CardHeader>
