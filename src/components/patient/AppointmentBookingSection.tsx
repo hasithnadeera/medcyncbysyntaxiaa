@@ -24,7 +24,7 @@ const AppointmentBookingSection = () => {
   ];
 
   // Fetch booked slots for selected date
-  const { data: bookedSlots = [] } = useQuery({
+  const { data: bookedSlots = [], isLoading: isLoadingSlots } = useQuery({
     queryKey: ['booked-slots', selectedDate],
     queryFn: async () => {
       if (!selectedDate) return [];
@@ -43,9 +43,24 @@ const AppointmentBookingSection = () => {
     enabled: !!selectedDate
   });
 
+  // Clear selected time slot if it becomes unavailable
+  useEffect(() => {
+    if (selectedTimeSlot && bookedSlots.includes(selectedTimeSlot)) {
+      setSelectedTimeSlot(null);
+      toast.warning("The previously selected time slot is no longer available.");
+    }
+  }, [bookedSlots, selectedTimeSlot]);
+
   const handleBookAppointment = async () => {
     if (!selectedDate || !selectedTimeSlot) {
       toast.error("Please select both date and time");
+      return;
+    }
+
+    // Double check if time slot is already booked
+    if (bookedSlots.includes(selectedTimeSlot)) {
+      toast.error("This time slot is already booked. Please select another time.");
+      setSelectedTimeSlot(null);
       return;
     }
 
@@ -68,7 +83,10 @@ const AppointmentBookingSection = () => {
       toast.success("Appointment booked successfully!");
       setSelectedDate(undefined);
       setSelectedTimeSlot(null);
+      
+      // Invalidate both patient appointments and booked slots queries
       queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['booked-slots'] });
     } catch (error: any) {
       toast.error("Failed to book appointment: " + error.message);
     } finally {
@@ -86,7 +104,10 @@ const AppointmentBookingSection = () => {
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={setSelectedDate}
+            onSelect={(date) => {
+              setSelectedDate(date);
+              setSelectedTimeSlot(null); // Reset time slot when date changes
+            }}
             className="rounded-md border pointer-events-auto"
             disabled={(date) => {
               // Disable past dates and weekends
@@ -107,7 +128,11 @@ const AppointmentBookingSection = () => {
           <CardTitle>Available Time Slots</CardTitle>
         </CardHeader>
         <CardContent>
-          {selectedDate ? (
+          {isLoadingSlots && selectedDate ? (
+            <p className="text-center text-muted-foreground py-4">
+              Loading available time slots...
+            </p>
+          ) : selectedDate ? (
             <div className="grid grid-cols-2 gap-2">
               {timeSlots.map((time) => (
                 <Button
