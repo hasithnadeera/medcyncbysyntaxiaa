@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,6 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Sign in with Supabase Auth
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -31,7 +29,6 @@ const Login = () => {
       if (signInError) {
         console.error("Login error:", signInError);
         
-        // Handle specific error cases
         if (signInError.message.includes("Invalid login credentials")) {
           throw new Error("Invalid email or password. Please try again.");
         } else {
@@ -43,7 +40,6 @@ const Login = () => {
         throw new Error("No user data returned");
       }
 
-      // Fetch user role after successful authentication
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role')
@@ -59,24 +55,14 @@ const Login = () => {
 
       toast.success("Login successful!");
 
-      // Route based on user role
-      if (userData) {
-        switch (userData.role) {
-          case 'doctor':
-            navigate('/doctor-dashboard');
-            break;
-          case 'patient':
-            navigate('/patient-dashboard');
-            break;
-          case 'pharmacist':
-            navigate('/pharmacist-dashboard');
-            break;
-          default:
-            navigate('/');
-        }
+      if (userData?.role === 'patient') {
+        navigate('/patient-dashboard');
+      } else if (userData?.role === 'doctor') {
+        navigate('/doctor-dashboard');
+      } else if (userData?.role === 'pharmacist') {
+        navigate('/pharmacist-dashboard');
       } else {
-        // If userData is null (maybe user just registered and profile not created yet)
-        toast.error("User profile not found. Please contact support.");
+        toast.error("Unknown user role. Please contact support.");
         navigate('/');
       }
     } catch (error: any) {
