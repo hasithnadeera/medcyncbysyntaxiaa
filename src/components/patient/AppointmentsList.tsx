@@ -51,8 +51,8 @@ const AppointmentsList = () => {
         throw new Error("Not authenticated");
       }
       
-      const { data, error } = await supabase.fn.invoke('delete-appointment', {
-        body: { appointmentId }
+      const { data, error } = await supabase.rpc('delete_appointment', {
+        appointment_id: appointmentId
       });
 
       if (error) {
