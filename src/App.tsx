@@ -19,11 +19,17 @@ import PatientProfile from "./pages/PatientProfile";
 import PatientMedicalRecords from "./pages/PatientMedicalRecords";
 import PatientAppointments from "./pages/PatientAppointments";
 import PharmacistDashboard from "./pages/PharmacistDashboard";
+import { toast } from "sonner";
 
-// Create a context for user authentication
-export const AuthContext = createContext<{ user: User | null; isLoading: boolean }>({
+// Enhance the context to include user role
+export const AuthContext = createContext<{ 
+  user: User | null; 
+  isLoading: boolean;
+  userRole: string | null;
+}>({
   user: null,
   isLoading: true,
+  userRole: null,
 });
 
 const queryClient = new QueryClient();
@@ -31,19 +37,54 @@ const queryClient = new QueryClient();
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setUser(session?.user ?? null);
+        
+        // Fetch user role when auth state changes
+        if (session?.user) {
+          try {
+            const { data, error } = await supabase.rpc('get_user_profile', { user_id: session.user.id });
+            
+            if (error) {
+              console.error("Error fetching user role:", error);
+            } else if (data && data.length > 0) {
+              setUserRole(data[0].role);
+            }
+          } catch (error) {
+            console.error("Error in role fetch:", error);
+          }
+        } else {
+          setUserRole(null);
+        }
+        
         setIsLoading(false);
       }
     );
 
     // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
+      
+      // Fetch user role for existing session
+      if (session?.user) {
+        try {
+          const { data, error } = await supabase.rpc('get_user_profile', { user_id: session.user.id });
+          
+          if (error) {
+            console.error("Error fetching user role:", error);
+          } else if (data && data.length > 0) {
+            setUserRole(data[0].role);
+          }
+        } catch (error) {
+          console.error("Error in role fetch:", error);
+        }
+      }
+      
       setIsLoading(false);
     });
 
@@ -52,8 +93,14 @@ const App = () => {
     };
   }, []);
 
-  // Create a protected route component
-  const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) => {
+  // Enhanced protected route component with role checking
+  const ProtectedRoute = ({ 
+    children, 
+    requiredRole 
+  }: { 
+    children: React.ReactNode; 
+    requiredRole?: string 
+  }) => {
     if (isLoading) {
       return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
@@ -62,15 +109,28 @@ const App = () => {
       return <Navigate to="/login" />;
     }
     
-    // For routes that require a specific role, we would need to check user role here
-    // This is left as an enhancement for later
+    // Check if a specific role is required and if user has that role
+    if (requiredRole && userRole !== requiredRole) {
+      toast.error(`Access denied. This area is only for ${requiredRole}s.`);
+      
+      // Redirect to the appropriate dashboard based on user role
+      if (userRole === 'patient') {
+        return <Navigate to="/patient-dashboard" />;
+      } else if (userRole === 'doctor') {
+        return <Navigate to="/doctor-dashboard" />;
+      } else if (userRole === 'pharmacist') {
+        return <Navigate to="/pharmacist-dashboard" />;
+      } else {
+        return <Navigate to="/login" />;
+      }
+    }
     
     return <>{children}</>;
   };
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={{ user, isLoading }}>
+      <AuthContext.Provider value={{ user, isLoading, userRole }}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -80,30 +140,30 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/patient-signup" element={<PatientSignup />} />
               
-              {/* Protected Routes */}
+              {/* Protected Routes with role requirements */}
               <Route path="/doctor-dashboard" element={
-                <ProtectedRoute><DoctorDashboard /></ProtectedRoute>
+                <ProtectedRoute requiredRole="doctor"><DoctorDashboard /></ProtectedRoute>
               } />
               <Route path="/doctor-dashboard/appointments" element={
-                <ProtectedRoute><DoctorAppointments /></ProtectedRoute>
+                <ProtectedRoute requiredRole="doctor"><DoctorAppointments /></ProtectedRoute>
               } />
               <Route path="/doctor-dashboard/pharmacists" element={
-                <ProtectedRoute><PharmacistManagement /></ProtectedRoute>
+                <ProtectedRoute requiredRole="doctor"><PharmacistManagement /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard" element={
-                <ProtectedRoute><PatientDashboard /></ProtectedRoute>
+                <ProtectedRoute requiredRole="patient"><PatientDashboard /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard/profile" element={
-                <ProtectedRoute><PatientProfile /></ProtectedRoute>
+                <ProtectedRoute requiredRole="patient"><PatientProfile /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard/medical-records" element={
-                <ProtectedRoute><PatientMedicalRecords /></ProtectedRoute>
+                <ProtectedRoute requiredRole="patient"><PatientMedicalRecords /></ProtectedRoute>
               } />
               <Route path="/patient-dashboard/appointments" element={
-                <ProtectedRoute><PatientAppointments /></ProtectedRoute>
+                <ProtectedRoute requiredRole="patient"><PatientAppointments /></ProtectedRoute>
               } />
               <Route path="/pharmacist-dashboard" element={
-                <ProtectedRoute><PharmacistDashboard /></ProtectedRoute>
+                <ProtectedRoute requiredRole="pharmacist"><PharmacistDashboard /></ProtectedRoute>
               } />
               
               <Route path="*" element={<NotFound />} />
