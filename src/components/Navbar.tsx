@@ -10,7 +10,11 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            <h1 className="text-xl font-semibold text-gray-900">MedSync</h1>
+            <img 
+              src="https://img.playbook.com/FreYCFlPY6LTRuNb4jErz3lhmTHkos8Iymufb10FfP4/Z3M6Ly9wbGF5Ym9v/ay1hc3NldHMtcHVi/bGljLzYzYWQxZmU2/LTgyNDQtNGQ2Zi1h/OTk1LWI3NzJmOGI2/OTc2ZA" 
+              alt="MedSync Logo" 
+              className="h-10 w-auto"
+            />
           </div>
           <div className="flex gap-4">
             <Button
@@ -34,3 +38,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
