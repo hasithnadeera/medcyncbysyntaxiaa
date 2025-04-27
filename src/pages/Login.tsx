@@ -41,41 +41,44 @@ const Login = () => {
         throw new Error("No user data returned");
       }
 
-      // Try to get user role from database
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', data.user.id)
-          .maybeSingle();
+      // Get user role using the get_user_profile function
+      const { data: profileData, error: profileError } = await supabase
+        .rpc('get_user_profile', {
+          user_id: data.user.id
+        });
 
-        if (userError) {
-          console.error("Error fetching user data:", userError);
-          // If there's a database error, still allow login but direct to patient dashboard by default
-          toast.success("Login successful! Redirecting to patient dashboard.");
-          navigate('/patient-dashboard');
-          return;
-        }
-
-        toast.success("Login successful!");
-
-        if (userData?.role === 'patient') {
-          navigate('/patient-dashboard');
-        } else if (userData?.role === 'doctor') {
-          navigate('/doctor-dashboard');
-        } else if (userData?.role === 'pharmacist') {
-          navigate('/pharmacist-dashboard');
-        } else {
-          // If no role is found, default to patient dashboard
-          toast.info("User role not found. Redirecting to patient dashboard.");
-          navigate('/patient-dashboard');
-        }
-      } catch (profileError) {
-        console.error("Profile fetch error:", profileError);
-        // If there's any error fetching the profile, default to patient dashboard
-        toast.success("Login successful! Redirecting to patient dashboard.");
-        navigate('/patient-dashboard');
+      if (profileError) {
+        console.error("Error fetching user role:", profileError);
+        toast.error("Error fetching user role");
+        setIsLoading(false);
+        return;
       }
+
+      if (!profileData || profileData.length === 0) {
+        toast.error("User profile not found");
+        setIsLoading(false);
+        return;
+      }
+
+      const userRole = profileData[0].role;
+      toast.success("Login successful!");
+
+      // Redirect based on role
+      switch (userRole) {
+        case 'patient':
+          navigate('/patient-dashboard');
+          break;
+        case 'doctor':
+          navigate('/doctor-dashboard');
+          break;
+        case 'pharmacist':
+          navigate('/pharmacist-dashboard');
+          break;
+        default:
+          toast.error("Invalid user role");
+          navigate('/');
+      }
+
     } catch (error: any) {
       setError(error.message);
       toast.error("Login failed", {
