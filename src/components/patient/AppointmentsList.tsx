@@ -31,7 +31,6 @@ const AppointmentsList = () => {
       }
 
       // Use the RPC function to get appointments instead of direct table access
-      // This avoids RLS policy recursive issues
       const { data, error } = await supabase
         .rpc('get_user_appointments')
         .order('appointment_date', { ascending: true });
@@ -56,14 +55,18 @@ const AppointmentsList = () => {
         throw new Error("Not authenticated");
       }
       
-      // Delete using the user's ID explicitly in the where clause
-      // This prevents the RLS policy from causing recursion
-      const { error } = await supabase
-        .from('appointments')
-        .delete()
-        .match({ id: appointmentId, patient_id: user.id });
+      // Instead of directly deleting from the table, create and use an RPC function to delete appointments
+      // This will avoid the RLS recursion issue
+      const { data, error } = await supabase.rpc('delete_appointment', {
+        appointment_id: appointmentId,
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error in delete_appointment RPC:", error);
+        throw error;
+      }
+      
+      return data;
     },
     onSuccess: () => {
       toast.success("Appointment deleted successfully");
