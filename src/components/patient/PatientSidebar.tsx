@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, User, FileText, Calendar } from "lucide-react";
+import { Home, User, FileText, Calendar, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 
 const PatientSidebar = () => {
@@ -41,6 +42,11 @@ const PatientSidebar = () => {
     },
   ];
 
+  const handleSignOut = () => {
+    // TODO: Implement sign out logic
+    navigate('/');
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b flex items-center justify-between py-3">
@@ -69,6 +75,16 @@ const PatientSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t p-4">
+        <SidebarMenuButton
+          onClick={handleSignOut}
+          className="w-full justify-start text-red-600 hover:text-red-700"
+          tooltip="Sign Out"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Sign Out</span>
+        </SidebarMenuButton>
+      </SidebarFooter>
     </Sidebar>
   );
 };
