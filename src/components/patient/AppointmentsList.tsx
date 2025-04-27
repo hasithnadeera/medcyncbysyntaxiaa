@@ -30,7 +30,8 @@ const AppointmentsList = () => {
       }
 
       try {
-        // Use the RPC function to avoid the recursion issue
+        // Call the database function that handles appointments fetching
+        // This avoids the RLS recursion issue by using SECURITY DEFINER
         const { data, error } = await supabase
           .rpc('get_user_appointments')
           .order('appointment_date', { ascending: true });
