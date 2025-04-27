@@ -45,24 +45,46 @@ export function PatientSignupForm() {
       setIsSubmitting(true);
       setError(null);
       
-      // Sign up the user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-      });
-
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error("Failed to create user account");
-      }
-
       // Format phone number and date for consistency
       const formattedPhoneNumber = values.phoneNumber.startsWith("07") 
         ? values.phoneNumber
         : "0" + values.phoneNumber;
       
       const formattedDateOfBirth = format(values.dateOfBirth, 'yyyy-MM-dd');
+      
+      // First check if user already exists in auth system
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', values.email)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error("Error checking for existing user:", checkError);
+        throw new Error("Error checking user existence. Please try again.");
+      }
+      
+      if (existingUser) {
+        throw new Error("A user with this email already exists. Please try logging in instead.");
+      }
+      
+      // Sign up the user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (authError) {
+        // Check if it's the "User already registered" error
+        if (authError.message.includes("User already registered")) {
+          throw new Error("This email is already registered. Please try logging in instead.");
+        }
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error("Failed to create user account");
+      }
       
       // Insert user profile data
       const { error: insertError } = await supabase
@@ -79,7 +101,14 @@ export function PatientSignupForm() {
           role: 'patient'
         });
       
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Error inserting user data:", insertError);
+        
+        // If inserting fails, we should cleanup the auth user to avoid orphaned auth accounts
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        
+        throw new Error("Failed to create user profile. Please try again.");
+      }
       
       toast.success("Registration successful", {
         description: "Your account has been created. Please check your email for verification.",

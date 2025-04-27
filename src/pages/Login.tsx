@@ -28,7 +28,16 @@ const Login = () => {
         password,
       });
 
-      if (signInError) throw signInError;
+      if (signInError) {
+        console.error("Login error:", signInError);
+        
+        // Handle specific error cases
+        if (signInError.message.includes("Invalid login credentials")) {
+          throw new Error("Invalid email or password. Please try again.");
+        } else {
+          throw signInError;
+        }
+      }
 
       if (!data.user) {
         throw new Error("No user data returned");
