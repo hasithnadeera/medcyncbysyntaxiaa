@@ -13,6 +13,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 type Prescription = {
   id: string;
@@ -52,15 +53,21 @@ export function PrescriptionManager() {
         return;
       }
       
-      // Transform data to include patient name
+      // Transform data to include patient name and ensure proper type for medicines
       const formattedData = data.map(item => ({
         id: item.id,
         patient_id: item.patient_id,
         patientName: item.users?.name || 'Unknown',
-        medicines: item.medicines,
+        // Cast the medicines as the expected type or provide defaults
+        medicines: {
+          details: typeof item.medicines === 'object' ? (item.medicines as any)?.details || '' : '',
+          illness: typeof item.medicines === 'object' ? (item.medicines as any)?.illness || '' : '',
+          symptoms: typeof item.medicines === 'object' ? (item.medicines as any)?.symptoms || '' : '',
+          notes: typeof item.medicines === 'object' ? (item.medicines as any)?.notes || undefined : undefined
+        },
         status: item.status,
         created_at: item.created_at
-      }));
+      })) as Prescription[];
       
       setPrescriptions(formattedData);
     } catch (error) {

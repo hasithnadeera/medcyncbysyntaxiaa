@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -35,7 +34,7 @@ const pharmacistFormSchema = z.object({
 
 type PharmacistFormValues = z.infer<typeof pharmacistFormSchema>;
 
-export function AddPharmacistForm() {
+export function AddPharmacistForm({ onSuccess }: { onSuccess?: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<PharmacistFormValues>({
@@ -102,8 +101,10 @@ export function AddPharmacistForm() {
       toast.success("Pharmacist registered successfully!");
       form.reset();
       
-      // Close the dialog
-      document.querySelector('[data-state="open"] button[data-state="closed"]')?.click();
+      // Close the dialog using the onSuccess callback
+      if (onSuccess) {
+        onSuccess();
+      }
       
     } catch (error) {
       console.error("Error in form submission:", error);

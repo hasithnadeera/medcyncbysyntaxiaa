@@ -25,6 +25,10 @@ const PharmacistManagement = () => {
     checkAccess();
   }, [checkAccess]);
 
+  const handleFormSuccess = () => {
+    setIsDialogOpen(false);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
@@ -47,7 +51,7 @@ const PharmacistManagement = () => {
                       Enter the pharmacist details below to register them in the system.
                     </DialogDescription>
                   </DialogHeader>
-                  <AddPharmacistForm />
+                  <AddPharmacistForm onSuccess={handleFormSuccess} />
                 </DialogContent>
               </Dialog>
             </div>
