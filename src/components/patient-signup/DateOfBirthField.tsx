@@ -31,8 +31,14 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
               className="w-full"
               min={minDate}
               max={today}
-              value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-              onChange={(e) => field.onChange(new Date(e.target.value))}
+              value={field.value instanceof Date && !isNaN(field.value.getTime()) 
+                ? field.value.toISOString().split('T')[0] 
+                : ''}
+              onChange={(e) => {
+                if (e.target.value) {
+                  field.onChange(new Date(e.target.value));
+                }
+              }}
             />
           </FormControl>
           <FormMessage />
