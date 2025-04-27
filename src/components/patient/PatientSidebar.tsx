@@ -6,6 +6,9 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -39,8 +42,6 @@ const PatientSidebar = () => {
     },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
-
   return (
     <Sidebar>
       <SidebarHeader className="border-b flex items-center justify-between py-3">
@@ -50,20 +51,25 @@ const PatientSidebar = () => {
         <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.path}>
-              <SidebarMenuButton
-                isActive={isActive(item.path)}
-                onClick={() => navigate(item.path)}
-                tooltip={item.title}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <SidebarGroup>
+          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton
+                    isActive={location.pathname === item.path}
+                    onClick={() => navigate(item.path)}
+                    tooltip={item.title}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
