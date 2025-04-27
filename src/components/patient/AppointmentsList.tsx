@@ -110,7 +110,7 @@ const AppointmentsList = () => {
           variant="destructive" 
           size="sm"
           onClick={() => deleteAppointmentMutation.mutate(appointment.id)}
-          disabled={deleteAppointmentMutation.isLoading}
+          disabled={deleteAppointmentMutation.isPending}
         >
           <Trash2 className="h-4 w-4 mr-2" />
           Delete
