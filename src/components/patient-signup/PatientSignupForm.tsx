@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { format } from "date-fns";
 
 export function PatientSignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,20 +48,21 @@ export function PatientSignupForm() {
         ? values.phoneNumber.substring(1) // Remove the leading 0
         : values.phoneNumber;
       
+      // Convert date to string format expected by the database
+      const formattedDateOfBirth = format(values.dateOfBirth, 'yyyy-MM-dd');
+      
       // Insert user data into the 'users' table
       const { data, error: insertError } = await supabase
         .from('users')
-        .insert([
-          { 
-            name: values.name,
-            dob: values.dateOfBirth,
-            id_number: values.idNumber,
-            address: values.address,
-            gender: values.gender,
-            phone_number: formattedPhoneNumber,
-            role: 'patient'
-          }
-        ])
+        .insert({
+          name: values.name,
+          dob: formattedDateOfBirth,
+          id_number: values.idNumber,
+          address: values.address,
+          gender: values.gender,
+          phone_number: formattedPhoneNumber,
+          role: 'patient' // Explicitly set the role to 'patient'
+        })
         .select();
       
       if (insertError) {
