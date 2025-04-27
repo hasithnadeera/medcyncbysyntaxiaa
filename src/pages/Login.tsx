@@ -1,21 +1,24 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [showOTP, setShowOTP] = useState(false);
   const [otp, setOtp] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate phone number (10 digits, all numeric)
     if (phoneNumber.length !== 10 || !/^\d+$/.test(phoneNumber)) {
       toast({
         variant: "destructive",
@@ -24,14 +27,35 @@ const Login = () => {
       });
       return;
     }
-    setShowOTP(true);
-    toast({
-      title: "OTP Sent",
-      description: "Please check your phone for the OTP",
-    });
+
+    try {
+      // Send OTP via Supabase
+      const { data, error } = await supabase.auth.signInWithOtp({
+        phone: `+254${phoneNumber}`, // Assuming Kenyan phone numbers
+        options: {
+          shouldCreateUser: false // Prevent creating new users via this method
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setShowOTP(true);
+      toast({
+        title: "OTP Sent",
+        description: "Please check your phone for the OTP",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "OTP Sending Failed",
+        description: error.message || "Could not send OTP. Please try again.",
+      });
+    }
   };
 
-  const handleOTPSubmit = (e: React.FormEvent) => {
+  const handleOTPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.length !== 6) {
       toast({
@@ -41,10 +65,51 @@ const Login = () => {
       });
       return;
     }
-    toast({
-      title: "Login Successful",
-      description: "Welcome back!",
-    });
+
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: `+254${phoneNumber}`,
+        token: otp,
+        type: 'sms'
+      });
+
+      if (error) throw error;
+
+      // Fetch user role after successful authentication
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('phone_number', phoneNumber)
+        .single();
+
+      if (userError) throw userError;
+
+      // Route based on user role
+      switch (userData.role) {
+        case 'doctor':
+          navigate('/doctor-dashboard');
+          break;
+        case 'patient':
+          navigate('/patient-dashboard');
+          break;
+        case 'pharmacist':
+          navigate('/pharmacist-dashboard');
+          break;
+        default:
+          navigate('/');
+      }
+
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${userData.role}!`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Could not verify OTP. Please try again.",
+      });
+    }
   };
 
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,13 +131,16 @@ const Login = () => {
           <form onSubmit={handlePhoneSubmit} className="mt-8 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                placeholder="Enter your phone number"
-                value={phoneNumber}
-                onChange={handlePhoneNumberChange}
-              />
+              <div className="flex items-center">
+                <span className="mr-2 text-gray-500">+254</span>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="Enter your phone number"
+                  value={phoneNumber}
+                  onChange={handlePhoneNumberChange}
+                />
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={phoneNumber.length !== 10}>
               Send OTP <Send className="ml-2" />
@@ -128,3 +196,4 @@ const Login = () => {
 };
 
 export default Login;
+
