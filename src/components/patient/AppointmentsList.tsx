@@ -30,10 +30,9 @@ const AppointmentsList = () => {
       }
 
       try {
+        // Use the RPC function to avoid the recursion issue
         const { data, error } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('patient_id', user.id)
+          .rpc('get_user_appointments')
           .order('appointment_date', { ascending: true });
 
         if (error) {
