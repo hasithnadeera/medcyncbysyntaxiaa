@@ -36,7 +36,10 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
                 : ''}
               onChange={(e) => {
                 if (e.target.value) {
-                  field.onChange(new Date(e.target.value));
+                  const date = new Date(e.target.value);
+                  // Set the time to noon to avoid timezone issues
+                  date.setHours(12, 0, 0, 0);
+                  field.onChange(date);
                 }
               }}
             />
