@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -51,22 +50,6 @@ export function PatientSignupForm() {
         : "0" + values.phoneNumber;
       
       const formattedDateOfBirth = format(values.dateOfBirth, 'yyyy-MM-dd');
-      
-      // First check if user already exists in auth system
-      const { data: existingUser, error: checkError } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', values.email)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error("Error checking for existing user:", checkError);
-        throw new Error("Error checking user existence. Please try again.");
-      }
-      
-      if (existingUser) {
-        throw new Error("A user with this email already exists. Please try logging in instead.");
-      }
       
       // Sign up the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
