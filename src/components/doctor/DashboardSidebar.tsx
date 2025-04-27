@@ -16,7 +16,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 
@@ -57,25 +56,19 @@ export function DashboardSidebar() {
                   <span>Add New Patient</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => console.log("Logout clicked")}
+                  tooltip="Logout"
+                >
+                  <LogOut />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="mt-auto border-t pt-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              onClick={() => console.log("Logout clicked")}
-              tooltip="Logout"
-              className="text-red-500 hover:text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="text-red-500" />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }
-
