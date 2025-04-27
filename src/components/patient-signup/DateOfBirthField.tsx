@@ -26,6 +26,9 @@ interface DateOfBirthFieldProps {
 
 export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const today = new Date();
+  const minYear = 1900;
+  const maxYear = today.getFullYear();
 
   return (
     <FormField
@@ -64,13 +67,20 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
                 }}
                 initialFocus
                 disabled={(date) =>
-                  date > new Date() || date < new Date("1900-01-01")
+                  date > today || date < new Date(minYear, 0, 1)
                 }
                 className={cn("p-3 pointer-events-auto")}
                 classNames={{
                   caption_label: "text-sm font-medium cursor-pointer hover:bg-accent rounded-md p-1",
+                  caption_dropdowns: "flex justify-center gap-1",
+                  dropdown: "focus:outline-none focus:ring-2 focus:ring-accent",
+                  dropdown_month: "relative inline-flex h-8",
+                  dropdown_year: "relative inline-flex h-8",
+                  dropdown_icon: "hidden" // Hide default dropdown icons
                 }}
                 captionLayout="dropdown"
+                fromYear={minYear}
+                toYear={maxYear}
               />
             </PopoverContent>
           </Popover>
@@ -80,4 +90,3 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
     />
   );
 }
-
