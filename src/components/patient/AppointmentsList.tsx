@@ -3,17 +3,24 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, AlertCircle } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 type Appointment = Database['public']['Tables']['appointments']['Row'];
 
 const AppointmentsList = () => {
   const navigate = useNavigate();
 
-  const { data: appointments, isLoading, error } = useQuery({
+  const { 
+    data: appointments, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery({
     queryKey: ['patient-appointments'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -22,25 +29,27 @@ const AppointmentsList = () => {
         throw new Error("Not authenticated");
       }
 
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', user.id)
-        .order('appointment_date', { ascending: true });
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('patient_id', user.id)
+          .order('appointment_date', { ascending: true });
 
-      if (error) {
-        console.error("Error fetching appointments:", error);
-        throw error;
+        if (error) {
+          console.error("Error fetching appointments:", error);
+          throw error;
+        }
+        
+        return data as Appointment[];
+      } catch (fetchError) {
+        console.error("Error in appointment fetch:", fetchError);
+        throw fetchError;
       }
-      
-      return data as Appointment[];
-    }
+    },
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
-
-  if (error) {
-    console.error("Error in appointment query:", error);
-    toast.error("Failed to load appointments");
-  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -80,6 +89,23 @@ const AppointmentsList = () => {
       </div>
     </div>
   );
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load appointments. Please try again later.
+          <div className="mt-2">
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
