@@ -192,6 +192,51 @@ export type Database = {
           role: string
         }[]
       }
+      search_patients_by_id: {
+        Args: { id_number_param: string }
+        Returns: {
+          address: string
+          created_at: string
+          dob: string
+          email: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id: string
+          id_number: string
+          name: string
+          phone_number: string
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
+      search_patients_by_name: {
+        Args: { search_term: string }
+        Returns: {
+          address: string
+          created_at: string
+          dob: string
+          email: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id: string
+          id_number: string
+          name: string
+          phone_number: string
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
+      search_patients_by_phone: {
+        Args: { phone_param: string }
+        Returns: {
+          address: string
+          created_at: string
+          dob: string
+          email: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id: string
+          id_number: string
+          name: string
+          phone_number: string
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
     }
     Enums: {
       appointment_status: "Booked" | "Completed" | "Canceled"

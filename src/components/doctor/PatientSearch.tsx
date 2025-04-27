@@ -46,21 +46,21 @@ export function PatientSearch() {
       if (searchType === "name") {
         // Search by name (case insensitive)
         const { data, error } = await supabase
-          .rpc('search_patients_by_name', { search_term: `%${searchTerm}%` });
+          .rpc('search_patients_by_name', { search_term: `%${searchTerm}%` } as any);
         
         if (error) throw error;
         query = data;
       } else if (searchType === "id") {
         // Search by ID number (exact match)
         const { data, error } = await supabase
-          .rpc('search_patients_by_id', { id_number_param: searchTerm });
+          .rpc('search_patients_by_id', { id_number_param: searchTerm } as any);
         
         if (error) throw error;
         query = data;
       } else if (searchType === "phone") {
         // Search by phone (exact match)
         const { data, error } = await supabase
-          .rpc('search_patients_by_phone', { phone_param: searchTerm });
+          .rpc('search_patients_by_phone', { phone_param: searchTerm } as any);
         
         if (error) throw error;
         query = data;
