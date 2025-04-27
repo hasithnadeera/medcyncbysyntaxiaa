@@ -43,6 +43,7 @@ const App = () => {
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         setUser(session?.user ?? null);
         
         // Fetch user role when auth state changes
@@ -52,11 +53,17 @@ const App = () => {
             
             if (error) {
               console.error("Error fetching user role:", error);
+              toast.error("Error fetching profile data");
             } else if (data && data.length > 0) {
+              console.log("User role fetched:", data[0].role);
               setUserRole(data[0].role);
+            } else {
+              console.log("No user data found");
+              setUserRole(null);
             }
           } catch (error) {
             console.error("Error in role fetch:", error);
+            toast.error("Error retrieving user role");
           }
         } else {
           setUserRole(null);
@@ -67,7 +74,16 @@ const App = () => {
     );
 
     // Then check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Session error:", error);
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log("Initial session check:", session?.user?.id);
       setUser(session?.user ?? null);
       
       // Fetch user role for existing session
@@ -78,7 +94,10 @@ const App = () => {
           if (error) {
             console.error("Error fetching user role:", error);
           } else if (data && data.length > 0) {
+            console.log("User role fetched:", data[0].role);
             setUserRole(data[0].role);
+          } else {
+            console.log("No user data found");
           }
         } catch (error) {
           console.error("Error in role fetch:", error);
@@ -86,7 +105,9 @@ const App = () => {
       }
       
       setIsLoading(false);
-    });
+    };
+
+    checkSession();
 
     return () => {
       subscription.unsubscribe();
@@ -101,11 +122,14 @@ const App = () => {
     children: React.ReactNode; 
     requiredRole?: string 
   }) => {
+    console.log("Protected route check - User:", !!user, "Role:", userRole, "Required:", requiredRole);
+    
     if (isLoading) {
       return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
     
     if (!user) {
+      toast.error("Please login to access this page");
       return <Navigate to="/login" />;
     }
     
