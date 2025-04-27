@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,30 +41,40 @@ const Login = () => {
         throw new Error("No user data returned");
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', data.user.id)
-        .maybeSingle();
+      // Try to get user role from database
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
-      if (userError) {
-        console.error("Error fetching user data:", userError);
-        toast.error("Login successful, but there was an issue retrieving your user profile.");
-        navigate('/'); // Fallback to home page if role can't be determined
-        return;
-      }
+        if (userError) {
+          console.error("Error fetching user data:", userError);
+          // If there's a database error, still allow login but direct to patient dashboard by default
+          toast.success("Login successful! Redirecting to patient dashboard.");
+          navigate('/patient-dashboard');
+          return;
+        }
 
-      toast.success("Login successful!");
+        toast.success("Login successful!");
 
-      if (userData?.role === 'patient') {
+        if (userData?.role === 'patient') {
+          navigate('/patient-dashboard');
+        } else if (userData?.role === 'doctor') {
+          navigate('/doctor-dashboard');
+        } else if (userData?.role === 'pharmacist') {
+          navigate('/pharmacist-dashboard');
+        } else {
+          // If no role is found, default to patient dashboard
+          toast.info("User role not found. Redirecting to patient dashboard.");
+          navigate('/patient-dashboard');
+        }
+      } catch (profileError) {
+        console.error("Profile fetch error:", profileError);
+        // If there's any error fetching the profile, default to patient dashboard
+        toast.success("Login successful! Redirecting to patient dashboard.");
         navigate('/patient-dashboard');
-      } else if (userData?.role === 'doctor') {
-        navigate('/doctor-dashboard');
-      } else if (userData?.role === 'pharmacist') {
-        navigate('/pharmacist-dashboard');
-      } else {
-        toast.error("Unknown user role. Please contact support.");
-        navigate('/');
       }
     } catch (error: any) {
       setError(error.message);
