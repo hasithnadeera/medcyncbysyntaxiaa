@@ -18,7 +18,7 @@ import { format } from "date-fns";
 type Appointment = {
   id: string;
   patient_id: string;
-  patientName: string;
+  patient_name: string;
   appointment_date: string;
   appointment_time: string;
   status: string;
@@ -31,6 +31,26 @@ export function DoctorAppointmentsView() {
 
   useEffect(() => {
     fetchAppointments();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        },
+        () => {
+          fetchAppointments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchAppointments = async () => {
@@ -38,34 +58,18 @@ export function DoctorAppointmentsView() {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      // Fetch ALL appointments with patient names, not just for the current doctor
       const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          id, patient_id, appointment_date, appointment_time, status,
-          users:patient_id (name)
-        `)
-        .order('appointment_date', { ascending: false });
+        .rpc('get_doctor_appointments');
       
       if (error) {
         console.error("Error fetching appointments:", error);
         return;
       }
       
-      // Transform data to include patient name
-      const formattedData = data.map(item => ({
-        id: item.id,
-        patient_id: item.patient_id,
-        patientName: item.users?.name || 'Unknown',
-        appointment_date: item.appointment_date,
-        appointment_time: item.appointment_time,
-        status: item.status
-      }));
-      
       // Split appointments into past and upcoming
-      const past = formattedData.filter(app => app.appointment_date < today || 
+      const past = data.filter(app => app.appointment_date < today || 
         (app.appointment_date === today && app.status === 'Completed'));
-      const upcoming = formattedData.filter(app => app.appointment_date >= today && 
+      const upcoming = data.filter(app => app.appointment_date >= today && 
         app.status !== 'Completed' && app.status !== 'Canceled');
       
       setPastAppointments(past);
@@ -98,7 +102,6 @@ export function DoctorAppointmentsView() {
 
   const formatDateTime = (date: string, time: string) => {
     try {
-      // Format: "April 27, 2025 at 10:30 AM"
       const dateObj = new Date(`${date}T${time}`);
       return format(dateObj, "MMMM d, yyyy 'at' h:mm a");
     } catch (error) {
@@ -141,7 +144,7 @@ export function DoctorAppointmentsView() {
               <TableBody>
                 {upcomingAppointments.map((appointment) => (
                   <TableRow key={appointment.id}>
-                    <TableCell>{appointment.patientName}</TableCell>
+                    <TableCell>{appointment.patient_name}</TableCell>
                     <TableCell>
                       {formatDateTime(appointment.appointment_date, appointment.appointment_time)}
                     </TableCell>
@@ -185,7 +188,7 @@ export function DoctorAppointmentsView() {
               <TableBody>
                 {pastAppointments.map((appointment) => (
                   <TableRow key={appointment.id}>
-                    <TableCell>{appointment.patientName}</TableCell>
+                    <TableCell>{appointment.patient_name}</TableCell>
                     <TableCell>
                       {formatDateTime(appointment.appointment_date, appointment.appointment_time)}
                     </TableCell>
