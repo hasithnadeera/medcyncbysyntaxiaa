@@ -1,26 +1,17 @@
-
 import { SidebarProvider } from "@/components/ui/sidebar";
 import PharmacistDashboardLayout from "@/components/pharmacist/PharmacistDashboardLayout";
 import PharmacistHomeContent from "@/components/pharmacist/PharmacistHomeContent";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-
 const PharmacistDashboard = () => {
-  return (
-    <PharmacistDashboardLayout>
+  return <PharmacistDashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-4 border-b pb-4">
           <SidebarTrigger />
-          <img 
-            src="https://img.playbook.com/FreYCFlPY6LTRuNb4jErz3lhmTHkos8Iymufb10FfP4/Z3M6Ly9wbGF5Ym9v/ay1hc3NldHMtcHVi/bGljLzYzYWQxZmU2/LTgyNDQtNGQ2Zi1h/OTk1LWI3NzJmOGI2/OTc2ZA" 
-            alt="MedSync Logo" 
-            className="h-8 w-auto mr-4"
-          />
+          
           <h1 className="text-xl font-semibold tracking-tight">Pharmacist Dashboard</h1>
         </div>
         <PharmacistHomeContent />
       </div>
-    </PharmacistDashboardLayout>
-  );
+    </PharmacistDashboardLayout>;
 };
-
 export default PharmacistDashboard;
