@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FilePen } from "lucide-react";
+import { FilePen, Clipboard } from "lucide-react";
 
 const medicalRecordSchema = z.object({
   patientId: z.string().min(1, "Patient ID is required"),
@@ -30,6 +30,7 @@ type MedicalRecordFormValues = z.infer<typeof medicalRecordSchema>;
 
 export function MedicalRecordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [patientName, setPatientName] = useState<string | null>(null);
   
   const form = useForm<MedicalRecordFormValues>({
     resolver: zodResolver(medicalRecordSchema),
@@ -41,6 +42,43 @@ export function MedicalRecordForm() {
       notes: "",
     },
   });
+
+  const patientId = form.watch("patientId");
+
+  // Fetch patient name when ID changes
+  const verifyPatient = async () => {
+    if (!patientId || patientId.length < 30) return; // Basic UUID validation
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', patientId)
+        .eq('role', 'patient')
+        .single();
+        
+      if (error || !data) {
+        setPatientName(null);
+        return;
+      }
+      
+      setPatientName(data.name);
+      toast.success(`Patient verified: ${data.name}`);
+    } catch (error) {
+      console.error("Error verifying patient:", error);
+      setPatientName(null);
+    }
+  };
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      form.setValue("patientId", text);
+      verifyPatient();
+    } catch (err) {
+      toast.error("Failed to read from clipboard");
+    }
+  };
 
   async function onSubmit(data: MedicalRecordFormValues) {
     setIsSubmitting(true);
@@ -79,7 +117,9 @@ export function MedicalRecordForm() {
       }
       
       toast.success("Medical record created successfully");
+      toast.info("Prescription has been sent to pharmacy");
       form.reset();
+      setPatientName(null);
     } catch (error) {
       console.error("Error in form submission:", error);
       toast.error("An error occurred while creating the medical record");
@@ -101,9 +141,28 @@ export function MedicalRecordForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Patient ID</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter patient ID" {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input 
+                    placeholder="Enter patient ID" 
+                    {...field} 
+                    onBlur={verifyPatient}
+                  />
+                </FormControl>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handlePasteFromClipboard}
+                  title="Paste from clipboard"
+                >
+                  <Clipboard className="h-4 w-4" />
+                </Button>
+              </div>
+              {patientName && (
+                <p className="text-sm text-green-600 mt-1">
+                  Patient: {patientName}
+                </p>
+              )}
               <FormMessage />
             </FormItem>
           )}

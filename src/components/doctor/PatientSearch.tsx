@@ -12,8 +12,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Search, Users } from "lucide-react";
+import { Search, Users, Copy, ClipboardCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 type Patient = {
   id: string;
@@ -30,6 +31,7 @@ export function PatientSearch() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) return;
@@ -64,6 +66,22 @@ export function PatientSearch() {
       console.error("Error in search:", error);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const copyToClipboard = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopiedId(id);
+      toast.success("Patient ID copied to clipboard");
+      
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+      toast.error("Failed to copy ID");
     }
   };
 
@@ -108,6 +126,7 @@ export function PatientSearch() {
                   <TableHead>Name</TableHead>
                   <TableHead>ID Number</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>Patient UUID</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Address</TableHead>
                 </TableRow>
@@ -118,6 +137,24 @@ export function PatientSearch() {
                     <TableCell>{patient.name}</TableCell>
                     <TableCell>{patient.id_number}</TableCell>
                     <TableCell>{patient.phone_number}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">{patient.id}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => copyToClipboard(patient.id)}
+                          title="Copy Patient ID"
+                          className="h-7 w-7"
+                        >
+                          {copiedId === patient.id ? (
+                            <ClipboardCheck className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </TableCell>
                     <TableCell>{patient.email}</TableCell>
                     <TableCell>{patient.address}</TableCell>
                   </TableRow>
