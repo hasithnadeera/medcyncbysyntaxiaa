@@ -7,11 +7,13 @@ const PatientSignup = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
         <div className="text-center">
-          <img 
-            src="https://img.playbook.com/FreYCFlPY6LTRuNb4jErz3lhmTHkos8Iymufb10FfP4/Z3M6Ly9wbGF5Ym9v/ay1hc3NldHMtcHVi/bGljLzYzYWQxZmU2/LTgyNDQtNGQ2Zi1h/OTk1LWI3NzJmOGI2/OTc2ZA" 
-            alt="MedSync Logo" 
-            className="mx-auto h-16 w-auto mb-6"
-          />
+          <Link to="/">
+            <img 
+              src="https://img.playbook.com/FreYCFlPY6LTRuNb4jErz3lhmTHkos8Iymufb10FfP4/Z3M6Ly9wbGF5Ym9v/ay1hc3NldHMtcHVi/bGljLzYzYWQxZmU2/LTgyNDQtNGQ2Zi1h/OTk1LWI3NzJmOGI2/OTc2ZA" 
+              alt="MedSync Logo" 
+              className="mx-auto h-16 w-auto mb-6 cursor-pointer"
+            />
+          </Link>
           <h2 className="text-3xl font-bold text-gray-900">Patient Sign Up</h2>
           <p className="mt-2 text-sm text-gray-600">
             Please fill in your details to create an account
