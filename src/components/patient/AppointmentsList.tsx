@@ -1,9 +1,9 @@
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Clock, AlertCircle } from "lucide-react";
+import { CalendarDays, Clock, AlertCircle, Trash2 } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ type Appointment = Database['public']['Tables']['appointments']['Row'];
 
 const AppointmentsList = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { 
     data: appointments, 
@@ -30,8 +31,6 @@ const AppointmentsList = () => {
       }
 
       try {
-        // Call the database function that handles appointments fetching
-        // This avoids the RLS recursion issue by using SECURITY DEFINER
         const { data, error } = await supabase
           .rpc('get_user_appointments')
           .order('appointment_date', { ascending: true });
@@ -49,6 +48,25 @@ const AppointmentsList = () => {
     },
     retry: 1,
     refetchOnWindowFocus: false,
+  });
+
+  // Delete appointment mutation
+  const deleteAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: string) => {
+      const { error } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Appointment deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete appointment: ${error.message}`);
+    }
   });
 
   const today = new Date();
@@ -87,6 +105,17 @@ const AppointmentsList = () => {
           </span>
         </div>
       </div>
+      {appointment.status !== 'Completed' && (
+        <Button 
+          variant="destructive" 
+          size="sm"
+          onClick={() => deleteAppointmentMutation.mutate(appointment.id)}
+          disabled={deleteAppointmentMutation.isLoading}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete
+        </Button>
+      )}
     </div>
   );
 

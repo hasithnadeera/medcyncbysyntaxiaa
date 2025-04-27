@@ -38,7 +38,7 @@ export function DoctorAppointmentsView() {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      // Fetch appointments with patient names
+      // Fetch ALL appointments with patient names, not just for the current doctor
       const { data, error } = await supabase
         .from('appointments')
         .select(`
