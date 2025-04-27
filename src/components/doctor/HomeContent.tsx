@@ -16,9 +16,7 @@ const HomeContent = () => {
       </div>
 
       <div className="flex gap-4">
-        <Button onClick={() => navigate("/patient-signup")} className="bg-medsync-primary">
-          Add New Patient
-        </Button>
+        
         
       </div>
 
