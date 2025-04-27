@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type Appointment = Database['public']['Tables']['appointments']['Row'];
 
@@ -15,20 +15,7 @@ const AppointmentBookingSection = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [isBooking, setIsBooking] = useState(false);
-
-  // Fetch existing appointments for date validation
-  const { data: appointments } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .order('appointment_date', { ascending: true });
-      
-      if (error) throw error;
-      return data as Appointment[];
-    }
-  });
+  const queryClient = useQueryClient();
 
   // Available time slots (in 24-hour format)
   const timeSlots = [
@@ -36,15 +23,25 @@ const AppointmentBookingSection = () => {
     "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
   ];
 
-  // Filter available time slots for selected date
-  const getAvailableTimeSlots = (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd");
-    const bookedSlots = appointments?.filter(apt => 
-      apt.appointment_date === dateStr
-    ).map(apt => apt.appointment_time) || [];
+  // Fetch booked slots for selected date
+  const { data: bookedSlots = [] } = useQuery({
+    queryKey: ['booked-slots', selectedDate],
+    queryFn: async () => {
+      if (!selectedDate) return [];
+      
+      const { data, error } = await supabase.rpc('get_booked_slots', {
+        check_date: format(selectedDate, "yyyy-MM-dd")
+      });
 
-    return timeSlots.filter(slot => !bookedSlots.includes(slot));
-  };
+      if (error) {
+        console.error("Error fetching booked slots:", error);
+        throw error;
+      }
+      
+      return data.map(row => row.appointment_time);
+    },
+    enabled: !!selectedDate
+  });
 
   const handleBookAppointment = async () => {
     if (!selectedDate || !selectedTimeSlot) {
@@ -71,6 +68,7 @@ const AppointmentBookingSection = () => {
       toast.success("Appointment booked successfully!");
       setSelectedDate(undefined);
       setSelectedTimeSlot(null);
+      queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
     } catch (error: any) {
       toast.error("Failed to book appointment: " + error.message);
     } finally {
@@ -111,7 +109,7 @@ const AppointmentBookingSection = () => {
         <CardContent>
           {selectedDate ? (
             <div className="grid grid-cols-2 gap-2">
-              {getAvailableTimeSlots(selectedDate).map((time) => (
+              {timeSlots.map((time) => (
                 <Button
                   key={time}
                   variant={selectedTimeSlot === time ? "default" : "outline"}
@@ -119,6 +117,7 @@ const AppointmentBookingSection = () => {
                     selectedTimeSlot === time ? "bg-[#1055AE]" : ""
                   }`}
                   onClick={() => setSelectedTimeSlot(time)}
+                  disabled={bookedSlots.includes(time)}
                 >
                   {time}
                 </Button>

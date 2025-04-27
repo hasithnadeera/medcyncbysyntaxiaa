@@ -128,6 +128,12 @@ export type Database = {
         Args: { appointment_id: string }
         Returns: boolean
       }
+      get_booked_slots: {
+        Args: { check_date: string }
+        Returns: {
+          appointment_time: string
+        }[]
+      }
       get_user_appointments: {
         Args: Record<PropertyKey, never>
         Returns: {
