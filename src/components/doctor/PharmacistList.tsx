@@ -19,16 +19,21 @@ const pharmacists = [{
   name: "Dr. Emily Brown",
   phone: "07234567892"
 }];
+
 export const PharmacistList = () => {
   const handleDelete = (id: number) => {
     console.log("Delete pharmacist with id:", id);
   };
-  return <Card className="p-6">
+
+  return (
+    <Card className="p-6">
       <div className="flex justify-between items-center mb-6">
-        
         <Dialog>
           <DialogTrigger asChild>
-            
+            <Button className="bg-medsync-primary hover:bg-medsync-primary/90 flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Add New Pharmacist
+            </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -58,5 +63,6 @@ export const PharmacistList = () => {
             </TableRow>)}
         </TableBody>
       </Table>
-    </Card>;
+    </Card>
+  );
 };
