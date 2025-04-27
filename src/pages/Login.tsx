@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,20 +17,20 @@ const Login = () => {
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate phone number (10 digits, all numeric)
-    if (phoneNumber.length !== 10 || !/^\d+$/.test(phoneNumber)) {
+    // Validate phone number (9 digits, all numeric)
+    if (phoneNumber.length !== 9 || !/^\d+$/.test(phoneNumber)) {
       toast({
         variant: "destructive",
         title: "Invalid phone number",
-        description: "Please enter a valid 10-digit phone number",
+        description: "Please enter a valid 9-digit Sri Lankan phone number",
       });
       return;
     }
 
     try {
-      // Send OTP via Supabase
+      // Send OTP via Supabase for Sri Lankan phone number
       const { data, error } = await supabase.auth.signInWithOtp({
-        phone: `+254${phoneNumber}`, // Assuming Kenyan phone numbers
+        phone: `+94${phoneNumber}`, // Sri Lankan country code
         options: {
           shouldCreateUser: false // Prevent creating new users via this method
         }
@@ -68,7 +67,7 @@ const Login = () => {
 
     try {
       const { data, error } = await supabase.auth.verifyOtp({
-        phone: `+254${phoneNumber}`,
+        phone: `+94${phoneNumber}`,
         token: otp,
         type: 'sms'
       });
@@ -114,7 +113,7 @@ const Login = () => {
 
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");
-    if (value.length <= 10) {
+    if (value.length <= 9) {
       setPhoneNumber(value);
     }
   };
@@ -132,7 +131,7 @@ const Login = () => {
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>
               <div className="flex items-center">
-                <span className="mr-2 text-gray-500">+254</span>
+                <span className="mr-2 text-gray-500">+94</span>
                 <Input
                   id="phoneNumber"
                   type="tel"
@@ -142,7 +141,7 @@ const Login = () => {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={phoneNumber.length !== 10}>
+            <Button type="submit" className="w-full" disabled={phoneNumber.length !== 9}>
               Send OTP <Send className="ml-2" />
             </Button>
           </form>
@@ -196,4 +195,3 @@ const Login = () => {
 };
 
 export default Login;
-
