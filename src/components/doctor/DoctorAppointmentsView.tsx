@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 type Appointment = {
   id: string;
@@ -58,24 +59,53 @@ export function DoctorAppointmentsView() {
     try {
       const today = new Date().toISOString().split('T')[0];
       
+      // Using a direct query with join instead of RPC function
       const { data, error } = await supabase
-        .rpc('get_doctor_appointments');
+        .from('appointments')
+        .select(`
+          id, 
+          patient_id,
+          appointment_date,
+          appointment_time,
+          status,
+          users!appointments_patient_id_fkey (name)
+        `)
+        .order('appointment_date', { ascending: false });
       
       if (error) {
         console.error("Error fetching appointments:", error);
+        toast.error("Failed to load appointments");
+        setIsLoading(false);
         return;
       }
       
+      // Transform the data to match our Appointment type
+      const formattedData: Appointment[] = data.map(appointment => ({
+        id: appointment.id,
+        patient_id: appointment.patient_id,
+        patient_name: appointment.users?.name || 'Unknown Patient',
+        appointment_date: appointment.appointment_date,
+        appointment_time: appointment.appointment_time,
+        status: appointment.status
+      }));
+      
       // Split appointments into past and upcoming
-      const past = data.filter(app => app.appointment_date < today || 
-        (app.appointment_date === today && app.status === 'Completed'));
-      const upcoming = data.filter(app => app.appointment_date >= today && 
-        app.status !== 'Completed' && app.status !== 'Canceled');
+      const past = formattedData.filter(app => 
+        app.appointment_date < today || 
+        (app.appointment_date === today && app.status === 'Completed')
+      );
+      
+      const upcoming = formattedData.filter(app => 
+        app.appointment_date >= today && 
+        app.status !== 'Completed' && 
+        app.status !== 'Canceled'
+      );
       
       setPastAppointments(past);
       setUpcomingAppointments(upcoming);
     } catch (error) {
       console.error("Error in fetchAppointments:", error);
+      toast.error("An error occurred while fetching appointments");
     } finally {
       setIsLoading(false);
     }
@@ -90,13 +120,16 @@ export function DoctorAppointmentsView() {
         
       if (error) {
         console.error("Error updating appointment:", error);
+        toast.error("Failed to update appointment status");
         return;
       }
       
+      toast.success("Appointment marked as complete");
       // Refresh appointments
       fetchAppointments();
     } catch (error) {
       console.error("Error in markAppointmentComplete:", error);
+      toast.error("An error occurred while updating the appointment");
     }
   };
 
