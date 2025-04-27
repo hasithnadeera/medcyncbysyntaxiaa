@@ -27,7 +27,7 @@ export function PhoneNumberField({ form }: PhoneNumberFieldProps) {
               placeholder="07XXXXXXXX"
               {...field}
               onChange={(e) => {
-                const value = e.target.value.replace(/[^0-9]/g, '');
+                const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
                 field.onChange(value);
               }}
             />

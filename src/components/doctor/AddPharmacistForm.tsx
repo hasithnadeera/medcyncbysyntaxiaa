@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,7 +19,9 @@ const pharmacistFormSchema = z.object({
   idNumber: z.string().min(1, "ID Number is required"),
   dateOfBirth: z.string().min(1, "Date of Birth is required"),
   address: z.string().min(1, "Address is required"),
-  phone: z.string().min(1, "Phone number is required"),
+  phone: z.string().regex(/^07\d{8}$/, {
+    message: "Phone number must start with 07 and be exactly 10 digits.",
+  }),
   gender: z.enum(["male", "female"], {
     required_error: "Please select a gender",
   }),
@@ -111,7 +112,14 @@ export function AddPharmacistForm() {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input placeholder="+1 234 567 8900" {...field} />
+                <Input 
+                  placeholder="07XXXXXXXX" 
+                  {...field} 
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    field.onChange(value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -159,7 +167,12 @@ export function AddPharmacistForm() {
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit">Add Pharmacist</Button>
+          <Button 
+            type="submit" 
+            className="bg-medsync-primary hover:bg-medsync-primary/90"
+          >
+            Add Pharmacist
+          </Button>
         </div>
       </form>
     </Form>

@@ -21,9 +21,9 @@ import { AddPharmacistForm } from "./AddPharmacistForm";
 
 // Mock data - in a real app this would come from an API
 const pharmacists = [
-  { id: 1, name: "Dr. Sarah Johnson", phone: "+1 234 567 8901" },
-  { id: 2, name: "Dr. Mike Chen", phone: "+1 234 567 8902" },
-  { id: 3, name: "Dr. Emily Brown", phone: "+1 234 567 8903" },
+  { id: 1, name: "Dr. Sarah Johnson", phone: "07234567890" },
+  { id: 2, name: "Dr. Mike Chen", phone: "07234567891" },
+  { id: 3, name: "Dr. Emily Brown", phone: "07234567892" },
 ];
 
 export const PharmacistList = () => {
@@ -37,7 +37,7 @@ export const PharmacistList = () => {
         <h2 className="text-2xl font-bold">Manage Pharmacists</h2>
         <Dialog>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-medsync-primary hover:bg-medsync-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Add Pharmacist
             </Button>
@@ -80,3 +80,4 @@ export const PharmacistList = () => {
     </Card>
   );
 };
+
