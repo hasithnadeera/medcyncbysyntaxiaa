@@ -6,15 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Clock } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 type Appointment = Database['public']['Tables']['appointments']['Row'];
 
 const AppointmentsList = () => {
+  const navigate = useNavigate();
+
   const { data: appointments, isLoading, error } = useQuery({
     queryKey: ['patient-appointments'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) {
+        navigate('/login');
+        throw new Error("Not authenticated");
+      }
 
       const { data, error } = await supabase
         .from('appointments')
@@ -27,7 +33,6 @@ const AppointmentsList = () => {
         throw error;
       }
       
-      console.log("Fetched appointments:", data);
       return data as Appointment[];
     }
   });
@@ -85,7 +90,7 @@ const AppointmentsList = () => {
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Loading appointments...</p>
-          ) : upcomingAppointments.length > 0 ? (
+          ) : upcomingAppointments?.length > 0 ? (
             upcomingAppointments.map((appointment) => (
               <AppointmentItem key={appointment.id} appointment={appointment} />
             ))
@@ -102,7 +107,7 @@ const AppointmentsList = () => {
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Loading appointments...</p>
-          ) : pastAppointments.length > 0 ? (
+          ) : pastAppointments?.length > 0 ? (
             pastAppointments.map((appointment) => (
               <AppointmentItem key={appointment.id} appointment={appointment} />
             ))
