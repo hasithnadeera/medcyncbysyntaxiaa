@@ -30,21 +30,18 @@ const AppointmentsList = () => {
         throw new Error("Not authenticated");
       }
 
-      try {
-        const { data, error } = await supabase
-          .rpc('get_user_appointments')
-          .order('appointment_date', { ascending: true });
+      // Use the RPC function to get appointments instead of direct table access
+      // This avoids RLS policy recursive issues
+      const { data, error } = await supabase
+        .rpc('get_user_appointments')
+        .order('appointment_date', { ascending: true });
 
-        if (error) {
-          console.error("Error fetching appointments:", error);
-          throw error;
-        }
-        
-        return data as Appointment[];
-      } catch (fetchError) {
-        console.error("Error in appointment fetch:", fetchError);
-        throw fetchError;
+      if (error) {
+        console.error("Error fetching appointments:", error);
+        throw error;
       }
+      
+      return data as Appointment[];
     },
     retry: 1,
     refetchOnWindowFocus: false,
@@ -53,10 +50,18 @@ const AppointmentsList = () => {
   // Delete appointment mutation
   const deleteAppointmentMutation = useMutation({
     mutationFn: async (appointmentId: string) => {
+      // Get the current user's ID first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
+      
+      // Delete using the user's ID explicitly in the where clause
+      // This prevents the RLS policy from causing recursion
       const { error } = await supabase
         .from('appointments')
         .delete()
-        .eq('id', appointmentId);
+        .match({ id: appointmentId, patient_id: user.id });
 
       if (error) throw error;
     },
