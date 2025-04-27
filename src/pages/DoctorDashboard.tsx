@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardLayout from "@/components/doctor/DashboardLayout";
@@ -6,43 +7,59 @@ import { DashboardSidebar } from "@/components/doctor/DashboardSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
 const DoctorDashboard = () => {
   const [userName, setUserName] = useState<string>("");
   const navigate = useNavigate();
+  
   useEffect(() => {
-    const fetchUserName = async () => {
+    const checkDoctorAccess = async () => {
       try {
-        const {
-          data: {
-            user
-          }
-        } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
+        
         if (!user) {
+          toast.error("Please login to access the dashboard");
           navigate('/login');
           return;
         }
 
-        // Use the new get_user_profile function to fetch user data
-        const {
-          data,
-          error
-        } = await supabase.rpc('get_user_profile', {
+        // Get user profile including role
+        const { data, error } = await supabase.rpc('get_user_profile', {
           user_id: user.id
         });
+
         if (error) {
           console.error("Error fetching user data:", error);
-          toast.error("Could not retrieve your profile information");
-        } else if (data && data.length > 0 && data[0].name) {
-          setUserName(data[0].name);
+          toast.error("Could not verify your access");
+          navigate('/login');
+          return;
         }
+
+        if (!data || data.length === 0) {
+          toast.error("Could not retrieve your profile information");
+          navigate('/login');
+          return;
+        }
+        
+        if (data[0].role !== 'doctor') {
+          toast.error("Unauthorized access. This area is for doctors only.");
+          navigate('/login');
+          return;
+        }
+
+        setUserName(data[0].name || "");
       } catch (error) {
-        console.error("Error in fetchUserName:", error);
+        console.error("Error in checkDoctorAccess:", error);
         toast.error("An unexpected error occurred");
+        navigate('/login');
       }
     };
-    fetchUserName();
+
+    checkDoctorAccess();
   }, [navigate]);
-  return <SidebarProvider>
+
+  return (
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
         <DashboardSidebar />
         <main className="flex-1">
@@ -54,6 +71,8 @@ const DoctorDashboard = () => {
           </DashboardLayout>
         </main>
       </div>
-    </SidebarProvider>;
+    </SidebarProvider>
+  );
 };
+
 export default DoctorDashboard;
