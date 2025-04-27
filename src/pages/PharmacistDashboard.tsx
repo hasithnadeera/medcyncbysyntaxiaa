@@ -6,6 +6,7 @@ import PharmacistHomeContent from "@/components/pharmacist/PharmacistHomeContent
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const PharmacistDashboard = () => {
   const [userName, setUserName] = useState<string>("");
@@ -13,21 +14,30 @@ const PharmacistDashboard = () => {
 
   useEffect(() => {
     const fetchUserName = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          navigate('/login');
+          return;
+        }
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('name')
-        .eq('id', user.id)
-        .single();
+        // Get the user's name directly from the users table
+        const { data, error } = await supabase
+          .from('users')
+          .select('name')
+          .eq('id', user.id)
+          .single();
 
-      if (data?.name) {
-        setUserName(data.name);
+        if (error) {
+          console.error("Error fetching user data:", error);
+          toast.error("Could not retrieve your profile information");
+        } else if (data?.name) {
+          setUserName(data.name);
+        }
+      } catch (error) {
+        console.error("Error in fetchUserName:", error);
+        toast.error("An unexpected error occurred");
       }
     };
 
