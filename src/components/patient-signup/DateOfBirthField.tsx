@@ -71,12 +71,23 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
                 }
                 className={cn("p-3 pointer-events-auto")}
                 classNames={{
-                  caption_label: "text-sm font-medium cursor-pointer hover:bg-accent rounded-md p-1",
-                  caption_dropdowns: "flex justify-center gap-1",
-                  dropdown: "focus:outline-none focus:ring-2 focus:ring-accent",
-                  dropdown_month: "relative inline-flex h-8",
-                  dropdown_year: "relative inline-flex h-8",
-                  dropdown_icon: "hidden" // Hide default dropdown icons
+                  caption: "flex justify-center pt-1 relative items-center gap-1",
+                  caption_label: "text-sm font-medium",
+                  caption_dropdowns: "flex justify-center gap-2",
+                  dropdown: "p-2 bg-white rounded-md border border-input shadow-sm focus:outline-none focus:ring-2 focus:ring-primary text-sm",
+                  dropdown_month: "relative inline-flex h-9",
+                  dropdown_year: "relative inline-flex h-9",
+                  dropdown_icon: "hidden",
+                  table: "w-full border-collapse space-y-1",
+                  head_row: "flex",
+                  head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                  row: "flex w-full mt-2",
+                  cell: "text-center text-sm relative p-0 hover:bg-accent rounded-md",
+                  day: "h-9 w-9 p-0 font-normal hover:bg-accent rounded-md",
+                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                  day_today: "bg-accent text-accent-foreground",
+                  day_outside: "text-muted-foreground opacity-50",
+                  day_disabled: "text-muted-foreground opacity-50",
                 }}
                 captionLayout="dropdown"
                 fromYear={minYear}
@@ -90,3 +101,4 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
     />
   );
 }
+
