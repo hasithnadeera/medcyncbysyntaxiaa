@@ -18,12 +18,15 @@ import {
 } from "@/components/ui/popover";
 import { UseFormReturn } from "react-hook-form";
 import { PatientSignupForm } from "@/lib/schemas/patient-signup-schema";
+import { useState } from "react";
 
 interface DateOfBirthFieldProps {
   form: UseFormReturn<PatientSignupForm>;
 }
 
 export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
   return (
     <FormField
       control={form.control}
@@ -31,7 +34,7 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel>Date of Birth</FormLabel>
-          <Popover>
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
@@ -40,9 +43,10 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
                     "w-full pl-3 text-left font-normal",
                     !field.value && "text-muted-foreground"
                   )}
+                  onClick={() => setIsPopoverOpen(true)}
                 >
                   {field.value ? (
-                    format(field.value, "PPP")
+                    format(field.value, "dd/MM/yyyy")
                   ) : (
                     <span>Pick a date</span>
                   )}
@@ -54,8 +58,19 @@ export function DateOfBirthField({ form }: DateOfBirthFieldProps) {
               <Calendar
                 mode="single"
                 selected={field.value}
-                onSelect={field.onChange}
+                onSelect={(selectedDate) => {
+                  field.onChange(selectedDate);
+                  setIsPopoverOpen(false);
+                }}
                 initialFocus
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
+                className={cn("p-3 pointer-events-auto")}
+                classNames={{
+                  caption_label: "text-sm font-medium cursor-pointer hover:bg-accent rounded-md p-1",
+                }}
+                captionLayout="dropdown"
               />
             </PopoverContent>
           </Popover>
