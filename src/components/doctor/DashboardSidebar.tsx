@@ -9,7 +9,8 @@ import {
   SidebarMenu, 
   SidebarMenuButton, 
   SidebarMenuItem,
-  SidebarFooter
+  SidebarFooter,
+  SidebarHeader
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 
@@ -41,6 +42,13 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar>
+      <SidebarHeader className="flex justify-center items-center p-4">
+        <img 
+          src="https://img.playbook.com/FreYCFlPY6LTRuNb4jErz3lhmTHkos8Iymufb10FfP4/Z3M6Ly9wbGF5Ym9v/ay1hc3NldHMtcHVi/bGljLzYzYWQxZmU2/LTgyNDQtNGQ2Zi1h/OTk1LWI3NzJmOGI2/OTc2ZA" 
+          alt="MedSync Logo" 
+          className="h-12 w-auto"
+        />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
