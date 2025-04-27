@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +7,7 @@ const HomeContent = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Today's Appointments</h3>
           <p className="text-3xl font-bold text-medsync-primary">8</p>
@@ -16,10 +15,6 @@ const HomeContent = () => {
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Patients Seen Today</h3>
           <p className="text-3xl font-bold text-medsync-primary">5</p>
-        </Card>
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Pending Reports</h3>
-          <p className="text-3xl font-bold text-medsync-primary">3</p>
         </Card>
       </div>
 

@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import PatientSignup from "./pages/PatientSignup";
 import DoctorDashboard from "./pages/DoctorDashboard";
+import DoctorAppointments from "./pages/DoctorAppointments";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/patient-signup" element={<PatientSignup />} />
           <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+          <Route path="/doctor-dashboard/appointments" element={<DoctorAppointments />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
