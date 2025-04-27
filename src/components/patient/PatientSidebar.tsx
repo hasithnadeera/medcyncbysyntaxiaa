@@ -3,6 +3,8 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, User, FileText, Calendar, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const PatientSidebar = () => {
   const location = useLocation();
@@ -25,9 +27,15 @@ const PatientSidebar = () => {
     path: "/patient-dashboard/appointments"
   }];
 
-  const handleSignOut = () => {
-    // TODO: Implement sign out logic
-    navigate('/');
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Signed out successfully");
+      navigate('/login');
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out");
+    }
   };
 
   return <Sidebar>

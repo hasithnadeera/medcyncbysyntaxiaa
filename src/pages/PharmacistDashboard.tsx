@@ -4,41 +4,22 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import PharmacistDashboardLayout from "@/components/pharmacist/PharmacistDashboardLayout";
 import PharmacistHomeContent from "@/components/pharmacist/PharmacistHomeContent";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { usePharmacistAuth } from "@/utils/authHelpers";
 
 const PharmacistDashboard = () => {
   const [userName, setUserName] = useState<string>("");
-  const navigate = useNavigate();
+  const { checkAccess } = usePharmacistAuth();
 
   useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          navigate('/login');
-          return;
-        }
-
-        // Use the new get_user_profile function to fetch user data
-        const { data, error } = await supabase.rpc('get_user_profile', { user_id: user.id });
-
-        if (error) {
-          console.error("Error fetching user data:", error);
-          toast.error("Could not retrieve your profile information");
-        } else if (data && data.length > 0 && data[0].name) {
-          setUserName(data[0].name);
-        }
-      } catch (error) {
-        console.error("Error in fetchUserName:", error);
-        toast.error("An unexpected error occurred");
+    const verifyAccess = async () => {
+      const userData = await checkAccess();
+      if (userData) {
+        setUserName(userData.name || "");
       }
     };
-
-    fetchUserName();
-  }, [navigate]);
+    
+    verifyAccess();
+  }, [checkAccess]);
 
   return (
     <PharmacistDashboardLayout>

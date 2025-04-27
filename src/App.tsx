@@ -39,6 +39,11 @@ const App = () => {
       (event, session) => {
         setUser(session?.user ?? null);
         setIsLoading(false);
+        
+        // Clear query cache when user signs out
+        if (event === 'SIGNED_OUT') {
+          queryClient.clear();
+        }
       }
     );
 
@@ -54,7 +59,7 @@ const App = () => {
   }, []);
 
   // Create a protected route component
-  const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) => {
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (isLoading) {
       return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
@@ -62,9 +67,6 @@ const App = () => {
     if (!user) {
       return <Navigate to="/login" />;
     }
-    
-    // For routes that require a specific role, we would need to check user role here
-    // This is left as an enhancement for later
     
     return <>{children}</>;
   };

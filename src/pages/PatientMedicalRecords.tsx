@@ -1,14 +1,21 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PatientDashboardLayout from "@/components/patient/PatientDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database } from "@/integrations/supabase/types";
+import { usePatientAuth } from "@/utils/authHelpers";
 
 type Prescription = Database['public']['Tables']['prescriptions']['Row'];
 
 const PatientMedicalRecords = () => {
+  const { checkAccess } = usePatientAuth();
+  
+  useEffect(() => {
+    checkAccess();
+  }, [checkAccess]);
+  
   const { data: prescriptions } = useQuery({
     queryKey: ['prescriptions'],
     queryFn: async () => {

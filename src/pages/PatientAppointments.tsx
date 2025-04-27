@@ -1,10 +1,17 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import PatientDashboardLayout from "@/components/patient/PatientDashboardLayout";
 import AppointmentBookingSection from "@/components/patient/AppointmentBookingSection";
 import AppointmentsList from "@/components/patient/AppointmentsList";
+import { usePatientAuth } from "@/utils/authHelpers";
 
 const PatientAppointments = () => {
+  const { checkAccess } = usePatientAuth();
+  
+  useEffect(() => {
+    checkAccess();
+  }, [checkAccess]);
+
   return (
     <PatientDashboardLayout>
       <div className="space-y-6">
