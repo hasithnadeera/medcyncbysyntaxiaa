@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +29,6 @@ const AppointmentsList = () => {
         throw new Error("Not authenticated");
       }
 
-      // Use the RPC function to get appointments instead of direct table access
       const { data, error } = await supabase
         .rpc('get_user_appointments')
         .order('appointment_date', { ascending: true });
@@ -46,23 +44,19 @@ const AppointmentsList = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Delete appointment mutation
   const deleteAppointmentMutation = useMutation({
     mutationFn: async (appointmentId: string) => {
-      // Get the current user's ID first
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("Not authenticated");
       }
       
-      // Instead of directly deleting from the table, create and use an RPC function to delete appointments
-      // This will avoid the RLS recursion issue
-      const { data, error } = await supabase.rpc('delete_appointment', {
-        appointment_id: appointmentId,
+      const { data, error } = await supabase.fn.invoke('delete-appointment', {
+        body: { appointmentId }
       });
 
       if (error) {
-        console.error("Error in delete_appointment RPC:", error);
+        console.error("Error in delete_appointment:", error);
         throw error;
       }
       

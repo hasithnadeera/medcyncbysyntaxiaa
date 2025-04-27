@@ -124,6 +124,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      delete_appointment: {
+        Args: { appointment_id: string }
+        Returns: boolean
+      }
       get_user_appointments: {
         Args: Record<PropertyKey, never>
         Returns: {
