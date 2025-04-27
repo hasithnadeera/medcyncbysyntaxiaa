@@ -9,7 +9,109 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          created_at: string
+          id: string
+          patient_id: string
+          status: Database["public"]["Enums"]["appointment_status"]
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          created_at?: string
+          id?: string
+          patient_id: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          id: string
+          medicines: Json
+          patient_id: string
+          status: Database["public"]["Enums"]["prescription_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medicines: Json
+          patient_id: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medicines?: Json
+          patient_id?: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          address: string
+          created_at: string
+          dob: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id: string
+          id_number: string
+          name: string
+          phone_number: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          dob: string
+          gender: Database["public"]["Enums"]["gender_type"]
+          id?: string
+          id_number: string
+          name: string
+          phone_number: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          dob?: string
+          gender?: Database["public"]["Enums"]["gender_type"]
+          id?: string
+          id_number?: string
+          name?: string
+          phone_number?: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +120,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      appointment_status: "Booked" | "Completed" | "Canceled"
+      gender_type: "male" | "female"
+      prescription_status: "Pending" | "Issued"
+      user_role: "doctor" | "patient" | "pharmacist"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +238,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      appointment_status: ["Booked", "Completed", "Canceled"],
+      gender_type: ["male", "female"],
+      prescription_status: ["Pending", "Issued"],
+      user_role: ["doctor", "patient", "pharmacist"],
+    },
   },
 } as const
