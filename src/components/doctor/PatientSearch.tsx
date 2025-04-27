@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -92,8 +93,8 @@ export function PatientSearch() {
       <Tabs defaultValue="name" onValueChange={setSearchType} className="mb-6">
         <TabsList>
           <TabsTrigger value="name">By Name</TabsTrigger>
-          
-          
+          <TabsTrigger value="id">By ID Number</TabsTrigger>
+          <TabsTrigger value="phone">By Phone</TabsTrigger>
         </TabsList>
       </Tabs>
       

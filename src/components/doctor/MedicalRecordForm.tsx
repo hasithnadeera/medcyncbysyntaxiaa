@@ -31,6 +31,7 @@ type MedicalRecordFormValues = z.infer<typeof medicalRecordSchema>;
 export function MedicalRecordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patientName, setPatientName] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   
   const form = useForm<MedicalRecordFormValues>({
     resolver: zodResolver(medicalRecordSchema),
@@ -47,8 +48,12 @@ export function MedicalRecordForm() {
 
   // Fetch patient name when ID changes
   const verifyPatient = async () => {
-    if (!patientId || patientId.length < 30) return; // Basic UUID validation
+    if (!patientId || patientId.length < 30) {
+      setPatientName(null);
+      return; // Basic UUID validation
+    }
     
+    setIsVerifying(true);
     try {
       // Use direct query instead of requiring role='patient'
       const { data, error } = await supabase
@@ -57,9 +62,18 @@ export function MedicalRecordForm() {
         .eq('id', patientId)
         .single();
         
-      if (error || !data) {
+      if (error) {
+        console.error("Error verifying patient:", error);
         setPatientName(null);
         toast.error("Patient not found. Please check the Patient ID");
+        setIsVerifying(false);
+        return;
+      }
+      
+      if (!data) {
+        setPatientName(null);
+        toast.error("Patient not found. Please check the Patient ID");
+        setIsVerifying(false);
         return;
       }
       
@@ -69,6 +83,8 @@ export function MedicalRecordForm() {
       console.error("Error verifying patient:", error);
       setPatientName(null);
       toast.error("Error verifying patient");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -83,22 +99,14 @@ export function MedicalRecordForm() {
   };
 
   async function onSubmit(data: MedicalRecordFormValues) {
+    if (!patientName) {
+      toast.error("Please verify patient ID first");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // First, verify patient exists - remove role check
-      const { data: patientData, error: patientError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', data.patientId)
-        .single();
-        
-      if (patientError || !patientData) {
-        toast.error("Patient not found. Please check the Patient ID");
-        setIsSubmitting(false);
-        return;
-      }
-      
       // Create medical record - this will trigger the prescription creation
       const { error: recordError } = await supabase
         .from('medical_records')
@@ -147,7 +155,6 @@ export function MedicalRecordForm() {
                   <Input 
                     placeholder="Enter patient ID" 
                     {...field} 
-                    onBlur={verifyPatient}
                   />
                 </FormControl>
                 <Button 
@@ -157,6 +164,14 @@ export function MedicalRecordForm() {
                   title="Paste from clipboard"
                 >
                   <Clipboard className="h-4 w-4" />
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={verifyPatient}
+                  disabled={isVerifying || !patientId || patientId.length < 30}
+                  variant="secondary"
+                >
+                  {isVerifying ? "Verifying..." : "Verify"}
                 </Button>
               </div>
               {patientName && (
@@ -228,7 +243,7 @@ export function MedicalRecordForm() {
         <Button 
           type="submit" 
           className="bg-medsync-primary hover:bg-medsync-primary/90"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !patientName}
         >
           {isSubmitting ? "Saving..." : "Save Medical Record"}
         </Button>
