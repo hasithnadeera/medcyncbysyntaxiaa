@@ -162,6 +162,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      create_medical_record: {
+        Args: {
+          p_patient_id: string
+          p_illness: string
+          p_symptoms: string
+          p_prescription: string
+          p_notes: string
+        }
+        Returns: string
+      }
       delete_appointment: {
         Args: { appointment_id: string }
         Returns: boolean

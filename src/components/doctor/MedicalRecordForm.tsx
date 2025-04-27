@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -46,7 +45,6 @@ export function MedicalRecordForm() {
 
   const patientId = form.watch("patientId");
 
-  // Fetch patient name when verifying
   const verifyPatient = async () => {
     if (!patientId || patientId.length < 30) {
       setPatientName(null);
@@ -55,7 +53,6 @@ export function MedicalRecordForm() {
     
     setIsVerifying(true);
     try {
-      // Use the get_user_profile function which is designed to safely retrieve user data
       const { data, error } = await supabase
         .rpc('get_user_profile', { user_id: patientId });
         
@@ -102,7 +99,6 @@ export function MedicalRecordForm() {
     setIsSubmitting(true);
     
     try {
-      // Use auth.uid() to get the current authenticated doctor's ID
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("You must be logged in to create a medical record");
@@ -110,14 +106,14 @@ export function MedicalRecordForm() {
         return;
       }
 
-      // Create medical record with a direct SQL function call to bypass RLS policies
-      const { error } = await supabase.rpc('create_medical_record', {
-        p_patient_id: data.patientId,
-        p_illness: data.illness,
-        p_symptoms: data.symptoms,
-        p_prescription: data.prescription,
-        p_notes: data.notes || ""
-      });
+      const { data: recordId, error } = await supabase
+        .rpc('create_medical_record', {
+          p_patient_id: data.patientId,
+          p_illness: data.illness,
+          p_symptoms: data.symptoms,
+          p_prescription: data.prescription,
+          p_notes: data.notes || ""
+        });
       
       if (error) {
         console.error("Error creating medical record:", error);
