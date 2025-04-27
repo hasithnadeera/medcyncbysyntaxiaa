@@ -40,30 +40,36 @@ export function PatientSearch() {
     setHasSearched(true);
     
     try {
-      let query = supabase
-        .from('users')
-        .select('id, name, id_number, phone_number, email, address')
-        .eq('role', 'patient');
+      // Use a more direct approach to query patients
+      let query;
       
-      // Apply filter based on search type
       if (searchType === "name") {
-        query = query.ilike('name', `%${searchTerm}%`);
+        // Search by name (case insensitive)
+        const { data, error } = await supabase
+          .rpc('search_patients_by_name', { search_term: `%${searchTerm}%` });
+        
+        if (error) throw error;
+        query = data;
       } else if (searchType === "id") {
-        query = query.eq('id_number', searchTerm);
+        // Search by ID number (exact match)
+        const { data, error } = await supabase
+          .rpc('search_patients_by_id', { id_number_param: searchTerm });
+        
+        if (error) throw error;
+        query = data;
       } else if (searchType === "phone") {
-        query = query.eq('phone_number', searchTerm);
+        // Search by phone (exact match)
+        const { data, error } = await supabase
+          .rpc('search_patients_by_phone', { phone_param: searchTerm });
+        
+        if (error) throw error;
+        query = data;
       }
       
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error("Search error:", error);
-        return;
-      }
-      
-      setPatients(data || []);
+      setPatients(query || []);
     } catch (error) {
       console.error("Error in search:", error);
+      toast.error("An error occurred during search");
     } finally {
       setIsSearching(false);
     }
@@ -106,6 +112,7 @@ export function PatientSearch() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
         />
         <Button 
           onClick={handleSearch} 
