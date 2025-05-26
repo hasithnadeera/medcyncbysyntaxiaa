@@ -10,7 +10,7 @@ export function usePrescriptions() {
         .from('prescriptions')
         .select(`
           *,
-          patient:users(
+          patient:users!prescriptions_patient_id_fkey(
             name,
             phone_number
           )
@@ -18,7 +18,11 @@ export function usePrescriptions() {
         .eq('status', 'Pending')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching prescriptions:', error);
+        throw error;
+      }
+      
       return data;
     }
   });
@@ -37,7 +41,10 @@ export function useTodayPrescriptionStats() {
         .gte('created_at', today)
         .lte('created_at', today + 'T23:59:59');
 
-      if (todayError) throw todayError;
+      if (todayError) {
+        console.error('Error fetching today stats:', todayError);
+        throw todayError;
+      }
 
       const total = todayPrescriptions?.length || 0;
       const pending = todayPrescriptions?.filter(p => p.status === 'Pending').length || 0;

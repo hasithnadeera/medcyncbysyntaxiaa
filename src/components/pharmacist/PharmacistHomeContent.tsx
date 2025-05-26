@@ -25,18 +25,65 @@ const PharmacistHomeContent = () => {
   const { data: todayStats } = useTodayPrescriptionStats();
 
   const handleMarkAsIssued = async (prescriptionId: string) => {
-    const { error } = await supabase
-      .from('prescriptions')
-      .update({ status: 'Issued' })
-      .eq('id', prescriptionId);
+    try {
+      const { error } = await supabase
+        .from('prescriptions')
+        .update({ status: 'Issued' })
+        .eq('id', prescriptionId);
 
-    if (error) {
-      toast.error("Failed to update prescription status");
-      return;
+      if (error) {
+        console.error('Error updating prescription:', error);
+        toast.error("Failed to update prescription status");
+        return;
+      }
+
+      toast.success("Prescription marked as issued");
+      refetch();
+    } catch (error) {
+      console.error('Error in handleMarkAsIssued:', error);
+      toast.error("An error occurred");
     }
+  };
 
-    toast.success("Prescription marked as issued");
-    refetch();
+  const renderMedicines = (medicines: any) => {
+    if (!medicines) return "No medicines listed";
+    
+    if (typeof medicines === 'string') {
+      return medicines;
+    }
+    
+    if (typeof medicines === 'object') {
+      // Handle the medicines object structure from medical records
+      if (medicines.details) {
+        return (
+          <div className="space-y-1">
+            <div><strong>Details:</strong> {medicines.details}</div>
+            {medicines.illness && <div><strong>Illness:</strong> {medicines.illness}</div>}
+            {medicines.symptoms && <div><strong>Symptoms:</strong> {medicines.symptoms}</div>}
+            {medicines.notes && <div><strong>Notes:</strong> {medicines.notes}</div>}
+          </div>
+        );
+      }
+      
+      // Handle other object structures
+      return Object.entries(medicines).map(([key, value], index) => (
+        <div key={index}>
+          <strong>{key}:</strong> {String(value)}
+        </div>
+      ));
+    }
+    
+    if (Array.isArray(medicines)) {
+      return (
+        <ul className="list-disc list-inside">
+          {medicines.map((medicine: string, index: number) => (
+            <li key={index}>{medicine}</li>
+          ))}
+        </ul>
+      );
+    }
+    
+    return String(medicines);
   };
 
   return (
@@ -112,23 +159,10 @@ const PharmacistHomeContent = () => {
               ) : (
                 prescriptions?.map((prescription) => (
                   <TableRow key={prescription.id}>
-                    <TableCell>{prescription.patient.name}</TableCell>
-                    <TableCell>{prescription.patient.phone_number}</TableCell>
-                    <TableCell>
-                      <ul className="list-disc list-inside">
-                        {Array.isArray(prescription.medicines) 
-                          ? prescription.medicines.map((medicine: string, index: number) => (
-                              <li key={index}>{medicine}</li>
-                            ))
-                          : typeof prescription.medicines === 'string' 
-                            ? [prescription.medicines].map((medicine: string, index: number) => (
-                                <li key={index}>{medicine}</li>
-                              ))
-                            : Object.keys(prescription.medicines).map((key: string, index: number) => (
-                                <li key={index}>{key}: {String(prescription.medicines[key])}</li>
-                              ))
-                        }
-                      </ul>
+                    <TableCell>{prescription.patient?.name || 'Unknown Patient'}</TableCell>
+                    <TableCell>{prescription.patient?.phone_number || 'N/A'}</TableCell>
+                    <TableCell className="max-w-xs">
+                      {renderMedicines(prescription.medicines)}
                     </TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800">
