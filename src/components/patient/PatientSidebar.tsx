@@ -1,14 +1,16 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, User, FileText, Calendar, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PatientSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const menuItems = [{
     title: "Home",
     icon: Home,
@@ -27,14 +29,37 @@ const PatientSidebar = () => {
     path: "/patient-dashboard/appointments"
   }];
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login');
+      }
+    };
+    checkSession();
+  }, [navigate]);
+
   const handleSignOut = async () => {
+    if (isSigningOut) return;
+    
     try {
-      await supabase.auth.signOut();
+      setIsSigningOut(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear all cached data
+      queryClient.clear();
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Navigate and show success message
+      navigate('/login', { replace: true });
       toast.success("Signed out successfully");
-      navigate('/login');
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Failed to sign out");
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -61,10 +86,14 @@ const PatientSidebar = () => {
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
-    <SidebarFooter className="border-t p-4">
-      <SidebarMenuButton onClick={handleSignOut} className="w-full justify-start text-red-600 hover:text-red-700" tooltip="Sign Out">
+    <SidebarFooter className="border-t p-4">      <SidebarMenuButton 
+        onClick={handleSignOut} 
+        className="w-full justify-start text-red-600 hover:text-red-700" 
+        tooltip="Sign Out"
+        disabled={isSigningOut}
+      >
         <LogOut className="h-5 w-5" />
-        <span>Sign Out</span>
+        <span>{isSigningOut ? "Signing out..." : "Sign Out"}</span>
       </SidebarMenuButton>
     </SidebarFooter>
   </Sidebar>;

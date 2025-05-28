@@ -1,30 +1,35 @@
-# Welcome to  MedSync by syntaxia
+# MedSync
 
-## How can I edit this code?
+A medical records management system built with React, TypeScript, and Supabase.
 
-**Use your preferred IDE**
+## Setup
 
-Follow these steps:
+1. Clone the repository
+```bash
+git clone [repository-url]
+cd medsyncBySyntaxia
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Install dependencies
+```bash
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+3. Create a `.env` file with your Supabase credentials
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Run the development server
+```bash
 npm run dev
 ```
-## What technologies are used for this project?
 
-This project is built with:
+## Technologies Used
 
-- Vite
-- TypeScript
 - React
-- shadcn-ui
+- TypeScript
+- Supabase
+- TanStack Query
 - Tailwind CSS
