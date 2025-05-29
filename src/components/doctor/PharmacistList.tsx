@@ -5,19 +5,14 @@ import { Trash2, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AddPharmacistForm } from "./AddPharmacistForm";
 
-// Mock data - in a real app this would come from an API
 const pharmacists = [{
   id: 1,
-  name: "Dr. Sarah Johnson",
+  name: "Kavindu Perera",
   phone: "07234567890"
 }, {
   id: 2,
-  name: "Dr. Mike Chen",
+  name: "Lavan Perera",
   phone: "07234567891"
-}, {
-  id: 3,
-  name: "Dr. Emily Brown",
-  phone: "07234567892"
 }];
 
 export const PharmacistList = () => {

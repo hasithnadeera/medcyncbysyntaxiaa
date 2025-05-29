@@ -1,60 +1,77 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-export function usePrescriptions() {
+export const usePrescriptions = () => {
   return useQuery({
-    queryKey: ['prescriptions'],
+    queryKey: ['prescriptions', 'pending'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('prescriptions')
-        .select(`
-          *,
-          patient:users!prescriptions_patient_id_fkey(
-            name,
-            phone_number
-          )
-        `)
-        .eq('status', 'Pending')
-        .order('created_at', { ascending: false });
+      try {
+        // Modify the query to avoid the recursion in RLS policies
+        const { data, error } = await supabase
+          .from('prescriptions')
+          .select(`
+            id,
+            medicines,
+            status,
+            created_at,
+            patient_id,
+            patients:patient_id (
+              id,
+              name,
+              phone_number
+            )
+          `)
+          .eq('status', 'Pending')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching prescriptions:', error);
+        if (error) {
+          console.error('Error fetching prescriptions:', error);
+          throw new Error(error.message);
+        }
+
+        // Transform the data to match the expected structure in your component
+        const transformedData = data.map(prescription => ({
+          ...prescription,
+          patient: prescription.patients
+        }));
+
+        return transformedData || [];
+      } catch (error) {
+        console.error('Error in usePrescriptions:', error);
         throw error;
       }
-      
-      return data;
-    }
+    },
   });
-}
+};
 
-export function useTodayPrescriptionStats() {
+export const useTodayPrescriptionStats = () => {
   return useQuery({
-    queryKey: ['prescriptions-stats-today'],
+    queryKey: ['prescriptions', 'stats', 'today'],
     queryFn: async () => {
+      // Get today's date in ISO format (YYYY-MM-DD)
       const today = new Date().toISOString().split('T')[0];
       
-      // Get all prescriptions from today
-      const { data: todayPrescriptions, error: todayError } = await supabase
+      // Fetch all prescriptions from today
+      const { data, error } = await supabase
         .from('prescriptions')
-        .select('status')
-        .gte('created_at', today)
-        .lte('created_at', today + 'T23:59:59');
+        .select('id, status')
+        .gte('created_at', `${today}T00:00:00`)
+        .lte('created_at', `${today}T23:59:59`);
 
-      if (todayError) {
-        console.error('Error fetching today stats:', todayError);
-        throw todayError;
+      if (error) {
+        console.error('Error fetching today stats:', error);
+        throw new Error(error.message);
       }
 
-      const total = todayPrescriptions?.length || 0;
-      const pending = todayPrescriptions?.filter(p => p.status === 'Pending').length || 0;
-      const issued = todayPrescriptions?.filter(p => p.status === 'Issued').length || 0;
-
-      return {
-        total,
-        pending,
-        issued
+      // Calculate stats
+      const stats = {
+        total: data?.length || 0,
+        pending: data?.filter(p => p.status === 'Pending').length || 0,
+        issued: data?.filter(p => p.status === 'Issued').length || 0
       };
-    }
+
+      return stats;
+    },
   });
-}
+};

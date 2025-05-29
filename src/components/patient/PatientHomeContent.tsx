@@ -65,6 +65,7 @@ const PatientHomeContent = () => {
             View all
           </Button>
         </CardHeader>
+        
         <CardContent>
           {upcomingAppointments.length > 0 ? <div className="space-y-4">
               {upcomingAppointments.map(appointment => <div key={appointment.id} className="flex flex-col space-y-1">

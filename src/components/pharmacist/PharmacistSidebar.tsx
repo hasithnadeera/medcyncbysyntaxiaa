@@ -1,6 +1,7 @@
 
 import { Home, FileText, Settings, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from "@/components/ui/sidebar";
+import { useNavigate } from "react-router-dom";
 
 const sidebarItems = [{
   title: "Home",
@@ -17,6 +18,18 @@ const sidebarItems = [{
 }];
 
 const PharmacistSidebar = () => {
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    // Clear authentication data from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    // Add any other auth items that need to be cleared
+    
+    // Redirect to login page
+    navigate("/login");
+  };
+
   return <Sidebar>
     <SidebarHeader className="flex justify-center items-center p-4">
       <img 
@@ -42,7 +55,10 @@ const PharmacistSidebar = () => {
       </SidebarGroup>
     </SidebarContent>
     <SidebarFooter className="p-4">
-      <SidebarMenuButton className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50">
+      <SidebarMenuButton 
+        className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+        onClick={handleSignOut}
+      >
         <LogOut />
         <span>Sign out</span>
       </SidebarMenuButton>

@@ -19,10 +19,91 @@ import { CalendarDays, ListCheck, Check } from "lucide-react";
 import { usePrescriptions, useTodayPrescriptionStats } from "@/hooks/use-prescriptions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 const PharmacistHomeContent = () => {
-  const { data: prescriptions, isLoading, refetch } = usePrescriptions();
+  //dummy data for pending prescriptions
+  const dummyPrescriptions = [
+    {
+      id: "1",
+      patient: {
+        name: "Jaliya Perera",
+        phone_number: "0712345678"
+      },
+      medicines: [
+        "Amoxicillin 250mg - 3 times daily",
+        "Ibuprofen 400mg - as needed for pain"
+      ],
+      status: "Pending",
+      created_at: new Date().toISOString()
+    },
+    {
+      id: "2",
+      patient: {
+        name: "Lasith Perera",
+        phone_number: "0723456789"
+      },
+      medicines: [
+        "Amoxicillin 250mg - 3 times daily",
+        "Ibuprofen 400mg - as needed for pain"
+      ],
+      status: "Pending",
+      created_at: new Date().toISOString()
+    },
+    {
+      id: "3",
+      patient: {
+        name: "Dhanika Perera",
+        phone_number: "0744567890"
+      },
+      medicines: [
+        "Amoxicillin 250mg - 3 times daily",
+        "Ibuprofen 400mg - as needed for pain"
+      ],
+      status: "Pending",
+      created_at: new Date().toISOString()
+    }
+  ];
+
+  // Modify the existing usePrescriptions hook to use dummy data
+  const { data: prescriptions, isLoading, error, refetch } = usePrescriptions();
+  
+  // Use useEffect to log the real data but display dummy data
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching prescriptions:", error);
+    }
+    console.log("Fetched prescriptions from DB:", prescriptions);
+    console.log("Using dummy prescriptions for display");
+  }, [prescriptions, error]);
   const { data: todayStats } = useTodayPrescriptionStats();
+
+  // Update the useEffect to provide more detailed logging
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching prescriptions:", error);
+      // Try to fetch directly to debug
+      const fetchDirectly = async () => {
+        try {
+          const { data, error: directError } = await supabase
+            .from('prescriptions')
+            .select('id, status')
+            .eq('status', 'Pending');
+          
+          if (directError) {
+            console.error("Direct fetch error:", directError);
+          } else {
+            console.log("Direct fetch result:", data);
+          }
+        } catch (e) {
+          console.error("Direct fetch exception:", e);
+        }
+      };
+      
+      fetchDirectly();
+    }
+    console.log("Fetched prescriptions:", prescriptions);
+  }, [prescriptions, error]);
 
   const handleMarkAsIssued = async (prescriptionId: string) => {
     try {
@@ -65,12 +146,7 @@ const PharmacistHomeContent = () => {
         );
       }
       
-      // Handle other object structures
-      return Object.entries(medicines).map(([key, value], index) => (
-        <div key={index}>
-          <strong>{key}:</strong> {String(value)}
-        </div>
-      ));
+      
     }
     
     if (Array.isArray(medicines)) {
@@ -96,7 +172,7 @@ const PharmacistHomeContent = () => {
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{todayStats?.total || 0}</div>
+            <div className="text-2xl font-bold">{dummyPrescriptions.length}</div>
             <p className="text-xs text-muted-foreground">
               Prescriptions handled today
             </p>
@@ -148,40 +224,31 @@ const PharmacistHomeContent = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+              {/* Replace the conditional rendering with dummy data */}
+              {dummyPrescriptions.map((prescription) => (
+                <TableRow key={prescription.id}>
+                  <TableCell>{prescription.patient?.name || 'Unknown Patient'}</TableCell>
+                  <TableCell>{prescription.patient?.phone_number || 'N/A'}</TableCell>
+                  <TableCell className="max-w-xs">
+                    {renderMedicines(prescription.medicines)}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800">
+                      {prescription.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button 
+                      size="sm"
+                      onClick={() => handleMarkAsIssued(prescription.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <Check className="h-4 w-4" />
+                      Mark as Issued
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              ) : prescriptions?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">No pending prescriptions</TableCell>
-                </TableRow>
-              ) : (
-                prescriptions?.map((prescription) => (
-                  <TableRow key={prescription.id}>
-                    <TableCell>{prescription.patient?.name || 'Unknown Patient'}</TableCell>
-                    <TableCell>{prescription.patient?.phone_number || 'N/A'}</TableCell>
-                    <TableCell className="max-w-xs">
-                      {renderMedicines(prescription.medicines)}
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800">
-                        {prescription.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        size="sm"
-                        onClick={() => handleMarkAsIssued(prescription.id)}
-                        className="flex items-center gap-2"
-                      >
-                        <Check className="h-4 w-4" />
-                        Mark as Issued
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
         </CardContent>

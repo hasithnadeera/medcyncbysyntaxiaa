@@ -20,7 +20,9 @@ const AppointmentBookingSection = () => {
   // Available time slots (in 24-hour format)
   const timeSlots = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
+    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+    "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
+    "20:00", "20:30", "21:00","21:30"
   ];
 
   // Fetch booked slots for selected date
@@ -94,6 +96,31 @@ const AppointmentBookingSection = () => {
     }
   };
 
+  // Function to check if a time slot is in the past for the selected date
+  const isTimeSlotInPast = (timeSlot: string): boolean => {
+    if (!selectedDate) return false;
+    
+    const today = new Date();
+    const selectedDay = new Date(selectedDate);
+    
+    // Only check for current day
+    if (
+      today.getDate() !== selectedDay.getDate() ||
+      today.getMonth() !== selectedDay.getMonth() ||
+      today.getFullYear() !== selectedDay.getFullYear()
+    ) {
+      return false;
+    }
+    
+    // Parse the time slot
+    const [hours, minutes] = timeSlot.split(':').map(Number);
+    const slotTime = new Date(selectedDay);
+    slotTime.setHours(hours, minutes, 0, 0);
+    
+    // Check if the slot time is in the past
+    return slotTime < today;
+  };
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
@@ -134,19 +161,22 @@ const AppointmentBookingSection = () => {
             </p>
           ) : selectedDate ? (
             <div className="grid grid-cols-2 gap-2">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  variant={selectedTimeSlot === time ? "default" : "outline"}
-                  className={`w-full ${
-                    selectedTimeSlot === time ? "bg-[#1055AE]" : ""
-                  }`}
-                  onClick={() => setSelectedTimeSlot(time)}
-                  disabled={bookedSlots.includes(time)}
-                >
-                  {time}
-                </Button>
-              ))}
+              {timeSlots.map((time) => {
+                const isPastTimeSlot = isTimeSlotInPast(time);
+                return (
+                  <Button
+                    key={time}
+                    variant={selectedTimeSlot === time ? "default" : "outline"}
+                    className={`w-full ${
+                      selectedTimeSlot === time ? "bg-[#1055AE]" : ""
+                    }`}
+                    onClick={() => setSelectedTimeSlot(time)}
+                    disabled={bookedSlots.includes(time) || isPastTimeSlot}
+                  >
+                    {time}
+                  </Button>
+                );
+              })}
             </div>
           ) : (
             <p className="text-center text-muted-foreground py-4">
